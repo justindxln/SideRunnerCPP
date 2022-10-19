@@ -2,7 +2,7 @@
 Unreal Engine 4 project for myself to learn the engine and C++.
 I started with a simple endless runner game based off of a tutorial and then extended the features on my own from there (acknowledgements below)
 
-The current extra features I have added so far are:
+Extra features I have added so far are:
   - Stored level blueprints in an array instead of manually linking each as a separate variable
   - Made the game destroy old levels as new ones are spawned
   - Offsetted camera to show more on the right side
@@ -18,3 +18,15 @@ The current extra features I have added so far are:
   - Added HP bar and HP Text to HUD
   - Added distance indicator to HUD (Timeline blink and spin animations, dynamic color based on distance)
   - Added double jump indicator to HUD (cooldown progress, glow image when double jump is available)
+
+Planned extra features include:
+  - Healing items
+  - Limited time powerups
+  - More environmental hazards and damage types
+  - Status effects
+
+References I've used for this projects include:
+  - https://www.youtube.com/watch?v=SOjZTmOMGcY
+  - https://unrealcpp.com/
+  - https://www.youtube.com/watch?v=4M2v2SYJDJk
+  - https://docs.unrealengine.com/4.27/en-US/
