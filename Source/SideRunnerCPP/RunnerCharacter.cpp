@@ -38,6 +38,8 @@ ARunnerCharacter::ARunnerCharacter()
 
 	tempPos = GetActorLocation();
 	zPosition = tempPos.Z + 300.f;
+
+	HPMax = 100.f;
 }
 
 // Called when the game starts or when spawned
@@ -46,8 +48,10 @@ void ARunnerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ARunnerCharacter::OnOverlapBegin);
+	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ARunnerCharacter::OnOverlapEnd);
 
-	CanMove = false;
+	ToggleMovement(false);
+	HPCurrent = HPMax;
 }
 
 // Called every frame
@@ -55,11 +59,26 @@ void ARunnerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Set camera position
 	tempPos = GetActorLocation();
 	tempPos.X -= 850.f;
 	tempPos.Y += 200.f;
 	tempPos.Z = zPosition;
 	SideViewCamera->SetWorldLocation(tempPos);
+
+	// Take damage over time if there is any
+	if (DamageContinuous > 0) {
+		ApplyInstantDamage(DamageContinuous * DeltaTime);
+	}
+
+	// Recover double jump if applicable and on cooldown
+	if (JumpMaxCountOriginal > 1 && DoubleJumpCoolDown < DoubleJumpCoolDownMax) {
+		DoubleJumpCoolDown += DeltaTime;
+
+		if (DoubleJumpCoolDown >= DoubleJumpCoolDownMax) {
+			RecoverJumpCount();
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -67,7 +86,7 @@ void ARunnerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ARunnerCharacter::Jump);
 	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARunnerCharacter::MoveRight);
@@ -85,28 +104,105 @@ void ARunnerCharacter::MoveRight(float value)
 	}
 }
 
+void ARunnerCharacter::OnJumped_Implementation()
+{
+	// If it's a double (or more) jump, decrease the max jump count and put it on cooldown
+	if (JumpCurrentCount > 1) {
+		JumpMaxCount--;
+		DoubleJumpCoolDown = 0.f;
+	}
+}
+
+// After set duration, recover the max jump count to allow double jump again
+void ARunnerCharacter::RecoverJumpCount()
+{
+	JumpMaxCount++;
+}
+
+void ARunnerCharacter::ApplyInstantDamage(float DamageAmount)
+{
+	// Apply instant point damage
+	HPCurrent = FMath::Clamp(HPCurrent - DamageAmount, 0.f, HPMax);
+
+	// Player dies if health below zero
+	if (HPCurrent <= 0) {
+
+		GetMesh()->Deactivate();
+		GetMesh()->SetVisibility(false);
+
+		CanMove = false;
+
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ARunnerCharacter::TriggerDeath, 2.f, false);
+	}
+}
+
+void ARunnerCharacter::AddDamageOverTime(float DamagePerSecond)
+{
+	DamageContinuous += DamagePerSecond;
+}
+
+void ARunnerCharacter::SubtractDamageOverTime(float DamagePerSecond, float LingerDuration)
+{
+	DamageContinuous -= DamagePerSecond;
+}
+
 void ARunnerCharacter::TriggerDeath()
 {
 	Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))->RestartGame();
 }
 
+
+// Check if overlapped with a Spike, and apply the appropriate damage if so
 void ARunnerCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 	AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (OtherActor != nullptr) {
-		ASpikes* KillWall = Cast<AKillWall>(OtherActor);
 		ASpikes* Spike = Cast<ASpikes>(OtherActor);
 
-		if (KillWall || Spike) {
-			GetMesh()->Deactivate();
-			GetMesh()->SetVisibility(false);
-
-			CanMove = false;
-
-			FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &ARunnerCharacter::TriggerDeath, 2.f, false);
+		if (Spike) {
+			TakeDamage(Spike->DamageValue, Spike->DamageIsPerSecond);
 		}
+	}
+}
+
+// Check if overlap is over, and end damage over time if so
+void ARunnerCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor != nullptr) {
+		ASpikes* KillWall = Cast<AKillWall>(OtherActor);
+
+		if (KillWall) {
+			SubtractDamageOverTime(KillWall->DamageValue, 0.f);
+		}
+	}
+}
+
+// Get HP Percentage for the HUD
+float ARunnerCharacter::GetHPPercentage()
+{
+	return HPCurrent / HPMax;
+}
+
+float ARunnerCharacter::GetDoubleJumpCoolDownPercentage()
+{
+	return FMath::Clamp(DoubleJumpCoolDown / DoubleJumpCoolDownMax, 0.0f, 1.0f);
+}
+
+// Get HP Text for the HUD
+FText ARunnerCharacter::GetHPText()
+{
+	return FText::FromString(FString::SanitizeFloat(FMath::RoundToFloat(HPCurrent)));
+}
+
+void ARunnerCharacter::TakeDamage(float DamageValue, bool DamageIsPerSecond)
+{
+	if (DamageIsPerSecond) {
+		AddDamageOverTime(DamageValue);
+
+	} else {
+		ApplyInstantDamage(DamageValue);
 	}
 }
 
@@ -115,14 +211,18 @@ void ARunnerCharacter::ToggleMovement(bool AllowMovement /*= true*/)
 	CanMove = AllowMovement;
 }
 
-void ARunnerCharacter::SetupMovementProperties(float RunSpeed, bool DoubleJump)
+void ARunnerCharacter::SetupMovementProperties(float RunSpeed, bool DoubleJump, float DoubleJumpCD)
 {
-
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 	GetCharacterMovement()->MaxFlySpeed = RunSpeed;
-	JumpMaxCount = DoubleJump ? 2 : 1;	
+	JumpMaxCountOriginal = DoubleJump ? 2 : 1;
+	JumpMaxCount = JumpMaxCountOriginal;
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("SETTING RUN SPEED TO %f"), RunSpeed));
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("JUMP COUNT = %d"), JumpMaxCount));
+	DoubleJumpCoolDownMax = DoubleJumpCD;
+	DoubleJumpCoolDown = DoubleJumpCoolDownMax;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("SETTING RUN SPEED TO %f"), RunSpeed));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("JUMP COUNT = %d"), JumpMaxCount));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("DB JUMP CD = %f"), DoubleJumpCoolDown));
 }
 

@@ -23,4 +23,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere)
+	float DamageValue;
+
+	UPROPERTY(EditAnywhere)
+	bool DamageIsPerSecond;
 };

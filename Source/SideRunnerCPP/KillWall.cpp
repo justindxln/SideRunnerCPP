@@ -20,6 +20,11 @@ void AKillWall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	SetActorLocation(GetActorLocation() + FVector(0.f, 350.f *DeltaTime, 0.f), true);
+	SetActorLocation(GetActorLocation() + FVector(0.f, MoveSpeed *DeltaTime, 0.f), true);
 
+}
+
+void AKillWall::SetMoveSpeed(float NewMoveSpeed)
+{
+	MoveSpeed = NewMoveSpeed;
 }

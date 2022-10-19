@@ -26,4 +26,11 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	// Allows Game Mode to adjust Move Speed
+	void SetMoveSpeed(float NewMoveSpeed);
+
+private:
+
+	float MoveSpeed = 350.0f;
+
 };
