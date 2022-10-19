@@ -25,7 +25,7 @@ Planned extra features include:
   - More environmental hazards and damage types
   - Status effects
 
-References I've used for this projects include:
+References I've used for this project include:
   - https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/
   - https://www.youtube.com/watch?v=SOjZTmOMGcY
   - https://unrealcpp.com/
