@@ -26,6 +26,7 @@ Planned extra features include:
   - Status effects
 
 References I've used for this projects include:
+  - https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/
   - https://www.youtube.com/watch?v=SOjZTmOMGcY
   - https://unrealcpp.com/
   - https://www.youtube.com/watch?v=4M2v2SYJDJk
