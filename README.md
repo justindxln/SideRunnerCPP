@@ -19,11 +19,13 @@ Extra features I have added so far are:
   - Added distance indicator to HUD (Timeline blink and spin animations, dynamic color based on distance)
   - Added double jump indicator to HUD (cooldown progress, glow image when double jump is available)
 
+
 Planned extra features include:
   - Healing items
   - Limited time powerups
   - More environmental hazards and damage types
   - Status effects
+ 
 
 References I've used for this project include:
   - https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/
@@ -31,3 +33,4 @@ References I've used for this project include:
   - https://unrealcpp.com/
   - https://www.youtube.com/watch?v=4M2v2SYJDJk
   - https://docs.unrealengine.com/4.27/en-US/
+  - 
