@@ -18,7 +18,9 @@ Extra features I have added so far are:
   - Added HP bar and HP Text to HUD
   - Added distance indicator to HUD (Timeline blink and spin animations, dynamic color based on distance)
   - Added double jump indicator to HUD (cooldown progress, glow image when double jump is available)
- 
+  - Added game over menu UI
+  - Added arcade style persistent high scores and player names
+  
 
 Planned extra features include:
   - Healing items
