@@ -21,11 +21,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-
 public:
 
 	UFUNCTION()
@@ -44,6 +39,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABaseLevel>> LevelDatabase;
 
+	// Maximum number of levels in the scene before oldest ones get destroyed
+	UPROPERTY(EditAnywhere)
+	int MaxLevelAmount = 10;
+
 public:
 
 	int RandomLevelIndex;
@@ -51,5 +50,4 @@ public:
 	FVector SpawnLocation = FVector();
 	FRotator SpawnRotation = FRotator();
 	FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
-
 };

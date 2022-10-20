@@ -24,7 +24,7 @@ ARunnerCharacter::ARunnerCharacter()
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
-	SideViewCamera = CreateAbstractDefaultSubobject<UCameraComponent>(TEXT("Side View Camera"));
+	SideViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Side View Camera"));
 	SideViewCamera->bUsePawnControlRotation = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -47,9 +47,6 @@ void ARunnerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ARunnerCharacter::OnOverlapBegin);
-	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ARunnerCharacter::OnOverlapEnd);
-
 	ToggleMovement(false);
 	HPCurrent = HPMax;
 }
@@ -65,11 +62,6 @@ void ARunnerCharacter::Tick(float DeltaTime)
 	tempPos.Y += 200.f;
 	tempPos.Z = zPosition;
 	SideViewCamera->SetWorldLocation(tempPos);
-
-	// Take damage over time if there is any
-	if (DamageContinuous > 0) {
-		ApplyInstantDamage(DamageContinuous * DeltaTime);
-	}
 
 	// Recover double jump if applicable and on cooldown
 	if (JumpMaxCountOriginal > 1 && DoubleJumpCoolDown < DoubleJumpCoolDownMax) {
@@ -119,64 +111,13 @@ void ARunnerCharacter::RecoverJumpCount()
 	JumpMaxCount++;
 }
 
-void ARunnerCharacter::ApplyInstantDamage(float DamageAmount)
-{
-	// Apply instant point damage
-	HPCurrent = FMath::Clamp(HPCurrent - DamageAmount, 0.f, HPMax);
-
-	// Player dies if health below zero
-	if (HPCurrent <= 0) {
-
-		GetMesh()->Deactivate();
-		GetMesh()->SetVisibility(false);
-
-		CanMove = false;
-
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ARunnerCharacter::TriggerDeath, 2.f, false);
-	}
-}
-
-void ARunnerCharacter::AddDamageOverTime(float DamagePerSecond)
-{
-	DamageContinuous += DamagePerSecond;
-}
-
-void ARunnerCharacter::SubtractDamageOverTime(float DamagePerSecond, float LingerDuration)
-{
-	DamageContinuous -= DamagePerSecond;
-}
-
 void ARunnerCharacter::TriggerDeath()
 {
-	Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))->RestartGame();
-}
+	GetMesh()->Deactivate();
+	GetMesh()->SetVisibility(false);
 
-
-// Check if overlapped with a Spike, and apply the appropriate damage if so
-void ARunnerCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
-	AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
-	if (OtherActor != nullptr) {
-		ASpikes* Spike = Cast<ASpikes>(OtherActor);
-
-		if (Spike) {
-			TakeDamage(Spike->DamageValue, Spike->DamageIsPerSecond);
-		}
-	}
-}
-
-// Check if overlap is over, and end damage over time if so
-void ARunnerCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor != nullptr) {
-		ASpikes* KillWall = Cast<AKillWall>(OtherActor);
-
-		if (KillWall) {
-			SubtractDamageOverTime(KillWall->DamageValue, 0.f);
-		}
-	}
+	CanMove = false;
+	//Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))->RestartGame();
 }
 
 // Get HP Percentage for the HUD
@@ -194,16 +135,6 @@ float ARunnerCharacter::GetDoubleJumpCoolDownPercentage()
 FText ARunnerCharacter::GetHPText()
 {
 	return FText::FromString(FString::SanitizeFloat(FMath::RoundToFloat(HPCurrent)));
-}
-
-void ARunnerCharacter::TakeDamage(float DamageValue, bool DamageIsPerSecond)
-{
-	if (DamageIsPerSecond) {
-		AddDamageOverTime(DamageValue);
-
-	} else {
-		ApplyInstantDamage(DamageValue);
-	}
 }
 
 void ARunnerCharacter::ToggleMovement(bool AllowMovement /*= true*/)

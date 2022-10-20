@@ -15,7 +15,6 @@ class SIDERUNNERCPP_API USideRunnerSaveGame : public USaveGame
 	GENERATED_BODY()
 	
 public:
-
 	UPROPERTY(VisibleAnywhere, Category = "PLayerSettings")
 	float PlayerSpeed;
 
@@ -29,5 +28,8 @@ public:
 	float WallSpeed;
 
 	UPROPERTY(VisibleAnywhere, Category = "Score")
-	float HighScore;
+	TArray<int32> HighScores;
+
+	UPROPERTY(VisibleAnywhere, Category = "Score")
+	TArray<FText> PlayerNames;
 };

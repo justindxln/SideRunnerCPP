@@ -27,7 +27,6 @@ public:
 
 
 protected:
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Triggers")
 	UBoxComponent* Trigger;
 	
@@ -37,7 +36,6 @@ protected:
 public:
 	UBoxComponent* GetTrigger();
 	UBoxComponent* GetSpawnLocation();
-
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,

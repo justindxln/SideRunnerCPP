@@ -2,6 +2,7 @@
 
 
 #include "KillWall.h"
+#include "RunnerCharacter.h"
 
 AKillWall::AKillWall()
 {
@@ -20,11 +21,17 @@ void AKillWall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (CanMove) {
 	SetActorLocation(GetActorLocation() + FVector(0.f, MoveSpeed *DeltaTime, 0.f), true);
-
+	}
 }
 
 void AKillWall::SetMoveSpeed(float NewMoveSpeed)
 {
 	MoveSpeed = NewMoveSpeed;
+}
+
+void AKillWall::SetCanMove(bool bCanMove /*= true*/)
+{
+	CanMove = bCanMove;
 }

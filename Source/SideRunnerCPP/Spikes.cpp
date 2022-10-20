@@ -2,6 +2,8 @@
 
 
 #include "Spikes.h"
+#include "RunnerCharacter.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASpikes::ASpikes()
@@ -16,6 +18,8 @@ void ASpikes::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASpikes::OnOverlapBegin);
+	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ASpikes::OnOverlapEnd);
 }
 
 // Called every frame
@@ -25,3 +29,22 @@ void ASpikes::Tick(float DeltaTime)
 
 }
 
+void ASpikes::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (ARunnerCharacter* PlayerCharacter = Cast<ARunnerCharacter>(OtherActor)) {
+		ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this));
+		if (GameMode) {
+			GameMode->PlayerStatusManager->ReceiveDamage(DamageValue, DamageType);
+		}
+	}
+}
+
+void ASpikes::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (ARunnerCharacter* PlayerCharacter = Cast<ARunnerCharacter>(OtherActor)) {
+		ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this));
+		if (GameMode) {
+			GameMode->PlayerStatusManager->EndDamage(DamageValue, DamageType);
+		}
+	}
+}

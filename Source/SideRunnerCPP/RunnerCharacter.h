@@ -34,23 +34,6 @@ public:
 	virtual void OnJumped_Implementation() override;
 
 protected:
-	// Move left/right
-	void MoveRight(float value);
-
-	void RecoverJumpCount();
-
-	// Apply damage instantly
-	void ApplyInstantDamage(float DamageAmount);
-
-	// Add damage over time
-	void AddDamageOverTime(float DamagePerSecond);
-
-	// Subtract damage over time
-	void SubtractDamageOverTime(float DamagePerSecond, float LingerDuration);
-
-	// Called when HP is 0 to restart level
-	void TriggerDeath();
-
 	// Position info to place the camera
 	float zPosition;
 	FVector tempPos = FVector();
@@ -68,21 +51,17 @@ protected:
 	float DoubleJumpCoolDown;
 	float DoubleJumpCoolDownMax;
 
+	// Move left/right
+	void MoveRight(float value);
+
+	void RecoverJumpCount();
+
 public:
 	// Return the attached camera
 	class UCameraComponent* GetSideViewCameraComponent() const
 	{
 		return SideViewCamera;
 	}
-
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
-		AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, 
-		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION(BlueprintCallable)
 	float GetHPPercentage();
@@ -93,7 +72,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FText GetHPText();
 
-	void TakeDamage(float DamageValue, bool DamageIsPerSecond);
+	// Called when HP is 0 to stop movement
+	void TriggerDeath();
 
 	void ToggleMovement(bool AllowMovement = true);
 

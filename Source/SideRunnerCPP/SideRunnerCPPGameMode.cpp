@@ -66,21 +66,24 @@ void ASideRunnerCPPGameMode::ChangeHUDWidget(TSubclassOf<UUserWidget> NewHUDClas
 	}
 }
 
-void ASideRunnerCPPGameMode::StartNewGame()
+void ASideRunnerCPPGameMode::BeginPlay()
 {
-	// Clear menu widgets
-	ChangeMenuWidget(nullptr);
-
-	// Add HUD widget to viewport
-	ChangeHUDWidget(HUDWidgetClass);
+	Super::BeginPlay();
 
 	// Set up kill wall
-	FVector WallLocation = FVector(-30.f, -450.f, 450.f);
-	FRotator WallRotation = FRotator(0.f, 90.f, 0.f);
 	FActorSpawnParameters WallInfo = FActorSpawnParameters();
-	KillWall = GetWorld()->SpawnActor<AKillWall>(KillWallBP, WallLocation, WallRotation, WallInfo);
+	KillWall = GetWorld()->SpawnActor<AKillWall>(KillWallClass, WallLocation, WallRotation, WallInfo);
 	KillWall->SetMoveSpeed(WallMoveSpeed);
 
+	// Get controller reference, load settings, open main menu widget
+	PlayerController = Cast<ASideRunnerPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+
+	LoadGame();
+	ChangeMenuWidget(StartingWidgetClass);
+}
+
+void ASideRunnerCPPGameMode::StartNewGame()
+{
 	// Set up player character
 	if (!PlayerCharacter) {
 		PlayerCharacter = Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
@@ -88,11 +91,26 @@ void ASideRunnerCPPGameMode::StartNewGame()
 	PlayerCharacter->ToggleMovement();
 	PlayerCharacter->SetupMovementProperties(CharacterRunSpeed, CharacterDoubleJumpAllowed, CharacterDoubleJumpCoolDown);
 
+	// Set up Player Status Manager
+	if (PlayerStatusManager != nullptr) {
+		Destroy(PlayerStatusManager);
+	}
+	PlayerStatusManager = GetWorld()->SpawnActor<APlayerStatusManager>(PlayerStatusManagerClass, FActorSpawnParameters());
+
 	// Set input mode in player controller
 	if (!PlayerController) {
 		PlayerController = Cast<ASideRunnerPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
 	}
 	PlayerController->SetInputGameOnly();
+
+	// Get the wall moving
+	if (KillWall) KillWall->SetCanMove();
+
+	// Clear menu widgets
+	ChangeMenuWidget(nullptr);
+
+	// Add HUD widget to viewport
+	ChangeHUDWidget(HUDWidgetClass);
 }
 
 // Get light color for the HUD glowing light depending on distance between player and wall
@@ -104,7 +122,7 @@ FLinearColor ASideRunnerCPPGameMode::GetDistanceLightColor()
 	FLinearColor MidColor = FLinearColor::Yellow;
 	FLinearColor FarColor = FLinearColor::Green;
 
-	float WallDistance = FVector::Dist(PlayerCharacter->GetActorLocation(), KillWall->GetActorLocation());
+	float WallDistance = GetPlayerWallDistance();
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("distance is %f"), WallDistance));
 
 	if (WallDistance > DistanceMax) { return FarColor; }
@@ -118,8 +136,7 @@ FLinearColor ASideRunnerCPPGameMode::GetDistanceLightColor()
 // Get the speed multiplier for the HUD glowing light depending on distance between player and wall
 float ASideRunnerCPPGameMode::GetGlowAnimSpeed()
 {
-	float WallDistance = FVector::Dist(PlayerCharacter->GetActorLocation(), KillWall->GetActorLocation());
-	float SpeedRatio = 1.0f - (FMath::Clamp(WallDistance, DistanceMin, DistanceMax) - DistanceMin) / (DistanceMax - DistanceMin);
+	float SpeedRatio = 1.0f - (FMath::Clamp(GetPlayerWallDistance(), DistanceMin, DistanceMax) - DistanceMin) / (DistanceMax - DistanceMin);
 
 	return FMath::Lerp(SpeedRatio, AnimSpeedMax, AnimSpeedMin);
 }
@@ -132,8 +149,9 @@ void ASideRunnerCPPGameMode::SaveGame()
 		SaveGameInstance->PlayerSpeed = CharacterRunSpeed;
 		SaveGameInstance->WallSpeed = WallMoveSpeed;
 		SaveGameInstance->PlayerDoubleJump = CharacterDoubleJumpAllowed;
-		SaveGameInstance->HighScore = this->HighScore;
+		SaveGameInstance->HighScores = this->HighScoreArray;
 		SaveGameInstance->PlayerDoubleJumpCoolDown = CharacterDoubleJumpCoolDown;
+		SaveGameInstance->PlayerNames = PlayerNameArray;
 
 		// Start ASync Save
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, FString(TEXT("DEFAULT")), 0);
@@ -150,11 +168,45 @@ void ASideRunnerCPPGameMode::LoadGame()
 		CharacterRunSpeed = SaveGameInstance->PlayerSpeed;
 		WallMoveSpeed = SaveGameInstance->WallSpeed;
 		CharacterDoubleJumpAllowed = SaveGameInstance->PlayerDoubleJump;
-		this->HighScore = SaveGameInstance->HighScore;
+		this->HighScoreArray = SaveGameInstance->HighScores;
 		CharacterDoubleJumpCoolDown = SaveGameInstance->PlayerDoubleJumpCoolDown;
+		PlayerNameArray = SaveGameInstance->PlayerNames;
 
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString((TEXT("LOADING DATA"))));
 	}
+}
+
+void ASideRunnerCPPGameMode::TriggerDeath()
+{
+	// Stop the wall from moving and save new high score
+	KillWall->SetCanMove(false);
+	int32 ScoreCurrent = FMath::RoundToInt(GetPlayerWallDistance());
+
+	// Insert new score among current high score array if it's high enough, then trim the array
+	for (int32 i = 0; i < HighScoreArray.Num(); i++) {
+		if (ScoreCurrent > HighScoreArray[i]) {
+			HighScoreArray.Insert(ScoreCurrent, i);
+			PlayerNameArray.Insert(PlayerNameCurrent, i);
+			break;
+		}
+	}
+	HighScoreArray.SetNum(MaxHighScores);
+	PlayerNameArray.SetNum(MaxHighScores);
+
+	SaveGame();
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Current Score: %i\nHigh Score: %i"), ScoreCurrent, HighScore));
+
+	SetHighScoreText();
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASideRunnerCPPGameMode::ShowGameOverMenu, 2.f, false);
+}
+
+// Clear HUD and show Game Over Menu
+void ASideRunnerCPPGameMode::ShowGameOverMenu()
+{
+	ChangeHUDWidget(nullptr);
+	ChangeMenuWidget(GameOverWidgetClass);
 }
 
 void ASideRunnerCPPGameMode::RestartGame()
@@ -162,13 +214,34 @@ void ASideRunnerCPPGameMode::RestartGame()
 	UGameplayStatics::OpenLevel(this, FName(GetWorld()->GetName()));
 }
 
-void ASideRunnerCPPGameMode::BeginPlay()
+float ASideRunnerCPPGameMode::GetPlayerWallDistance()
 {
-	Super::BeginPlay();
+	return FVector::Dist(PlayerCharacter->GetActorLocation(), KillWall->GetActorLocation());
+}
 
-	// Get player and controller references, load settings, open main menu widget
-	PlayerCharacter = Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
-	PlayerController = Cast<ASideRunnerPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
-	LoadGame();
-	ChangeMenuWidget(StartingWidgetClass);
+void ASideRunnerCPPGameMode::SetHighScoreText()
+{
+	// Concat all scores in array to string then convert to text
+	FString HighScoreString;
+	for (auto& Score : HighScoreArray)
+	{
+		HighScoreString += FString::Printf(TEXT("%i\n"), Score);
+	}	
+	HighScoreText = FText::FromString(HighScoreString);
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, HighScoreText.ToString());
+
+	// Concat all names in array to string then convert to text
+	FString NamesString;
+	for (auto& Name : PlayerNameArray)
+	{
+		if (Name.IsEmpty()) Name = FText::FromString(TEXT("Unnamed Player"));
+		NamesString += Name.ToString();
+		NamesString += "\n";
+	}
+	PlayerNamesText = FText::FromString(NamesString);
+}
+
+void ASideRunnerCPPGameMode::SetPlayerName(FText PlayerName)
+{
+	PlayerNameCurrent = PlayerName;
 }

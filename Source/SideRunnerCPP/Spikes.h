@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "EnumName.h"
 #include "Spikes.generated.h"
+
+class UBoxComponent;
 
 UCLASS()
 class SIDERUNNERCPP_API ASpikes : public AActor
@@ -23,9 +26,22 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UBoxComponent* CollisionBox;
+
 	UPROPERTY(EditAnywhere)
 	float DamageValue;
 
 	UPROPERTY(EditAnywhere)
-	bool DamageIsPerSecond;
+	EDamageType DamageType;
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
