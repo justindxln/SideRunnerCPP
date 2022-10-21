@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerStatusManager.h"
+#include "EnumName.h"
 #include "SideRunnerCPPGameMode.generated.h"
 
 class ASpikes;
@@ -24,6 +25,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	UPROPERTY(BlueprintReadOnly)
@@ -69,7 +74,7 @@ protected:
 	// Current Widget references
 	UPROPERTY()
 	UUserWidget* CurrentMenuWidget;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	UUserWidget* CurrentHUDWidget;
 
 	// Kill Wall properties
@@ -88,23 +93,35 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Runner Properties")
 	float CharacterDoubleJumpCoolDown = 4.0f;
 
-	// High score stuff
-	UPROPERTY(BlueprintReadOnly)
+	// Scoring stuff
+	UPROPERTY(BlueprintReadOnly, Category = "Side Runner Scoring")
+	FText FinalScoreText;
+	UPROPERTY(BlueprintReadOnly, Category = "Side Runner Scoring")
 	FText HighScoreText;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Side Runner Scoring")
 	FText PlayerNamesText;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(BlueprintReadOnly, Category = "Side Runner Scoring")
+	float CurrentScoreMultiplier;
+	UPROPERTY(BlueprintReadOnly, Category = "Side Runner Scoring")
+	float CurrentScore;
+	UPROPERTY(EditAnywhere, Category = "Side Runner Scoring")
 	int32 MaxHighScores;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Side Runner Scoring")
 	TArray<int32> HighScoreArray;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Side Runner Scoring")
 	TArray<FText> PlayerNameArray;
 	FText PlayerNameCurrent;
+
+	// Enum to store whether the game is being played
+	EGameState GameState;
 
 	// References to relevant actors
 	ARunnerCharacter* PlayerCharacter;
 	AKillWall* KillWall;
 	ASideRunnerPlayerController* PlayerController;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Side Runner Game")
+	void DoOnTriggerDeath();
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
 	void RestartGame();
@@ -117,6 +134,8 @@ protected:
 	void SetPlayerName(FText PlayerName);
 
 	float GetPlayerWallDistance();
+
+	float GetScoreMultiplier();
 
 private:
 	static const float DistanceMin;

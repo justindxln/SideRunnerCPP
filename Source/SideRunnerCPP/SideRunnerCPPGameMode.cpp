@@ -17,12 +17,23 @@ ASideRunnerCPPGameMode::ASideRunnerCPPGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 const float ASideRunnerCPPGameMode::DistanceMax = 2000.f;
 const float ASideRunnerCPPGameMode::DistanceMin = 800.f;
 const float ASideRunnerCPPGameMode::AnimSpeedMax = 2.5f;
 const float ASideRunnerCPPGameMode::AnimSpeedMin = 0.3f;
+
+void ASideRunnerCPPGameMode::Tick(float DeltaTime)
+{
+	// Only increase the score when the game is active
+	if (GameState == EGameState::Active) {
+	CurrentScoreMultiplier = GetScoreMultiplier();
+	CurrentScore += (CurrentScoreMultiplier * 10.f) * DeltaTime;
+	}
+}
 
 void ASideRunnerCPPGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass)
 {
@@ -70,6 +81,8 @@ void ASideRunnerCPPGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GameState = EGameState::PreGame;
+
 	// Set up kill wall
 	FActorSpawnParameters WallInfo = FActorSpawnParameters();
 	KillWall = GetWorld()->SpawnActor<AKillWall>(KillWallClass, WallLocation, WallRotation, WallInfo);
@@ -84,12 +97,15 @@ void ASideRunnerCPPGameMode::BeginPlay()
 
 void ASideRunnerCPPGameMode::StartNewGame()
 {
+	GameState = EGameState::Active;
+
 	// Set up player character
 	if (!PlayerCharacter) {
 		PlayerCharacter = Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
 	}
 	PlayerCharacter->ToggleMovement();
 	PlayerCharacter->SetupMovementProperties(CharacterRunSpeed, CharacterDoubleJumpAllowed, CharacterDoubleJumpCoolDown);
+	CurrentScore = 0.f;
 
 	// Set up Player Status Manager
 	if (PlayerStatusManager != nullptr) {
@@ -178,14 +194,17 @@ void ASideRunnerCPPGameMode::LoadGame()
 
 void ASideRunnerCPPGameMode::TriggerDeath()
 {
+	DoOnTriggerDeath();
+	GameState = EGameState::PostGame;
+
 	// Stop the wall from moving and save new high score
 	KillWall->SetCanMove(false);
-	int32 ScoreCurrent = FMath::RoundToInt(GetPlayerWallDistance());
+	int32 CurrentScoreInt = FMath::RoundToInt(CurrentScore);
 
 	// Insert new score among current high score array if it's high enough, then trim the array
 	for (int32 i = 0; i < HighScoreArray.Num(); i++) {
-		if (ScoreCurrent > HighScoreArray[i]) {
-			HighScoreArray.Insert(ScoreCurrent, i);
+		if (CurrentScoreInt > HighScoreArray[i]) {
+			HighScoreArray.Insert(FMath::RoundToInt(CurrentScoreInt), i);
 			PlayerNameArray.Insert(PlayerNameCurrent, i);
 			break;
 		}
@@ -199,7 +218,7 @@ void ASideRunnerCPPGameMode::TriggerDeath()
 
 	SetHighScoreText();
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASideRunnerCPPGameMode::ShowGameOverMenu, 2.f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASideRunnerCPPGameMode::ShowGameOverMenu, 1.f, false);
 }
 
 // Clear HUD and show Game Over Menu
@@ -219,8 +238,31 @@ float ASideRunnerCPPGameMode::GetPlayerWallDistance()
 	return FVector::Dist(PlayerCharacter->GetActorLocation(), KillWall->GetActorLocation());
 }
 
+float ASideRunnerCPPGameMode::GetScoreMultiplier()
+{
+	float MultiplierMax = 5.0f;
+	float MultiplierMin = 1.0f;
+
+	// Get distance between player and wall, increase it to 0 if it's negative
+	float BaseDistance = GetPlayerWallDistance();
+	BaseDistance = FMath::Clamp<float>(BaseDistance, 0.f, BaseDistance);
+
+	// Get position on the multiplier scale based on distance
+	// The closer the player to the wall, the higher the multiplier
+	float MultiplierScale = FMath::Clamp(1.0f - ((BaseDistance - DistanceMin) / (DistanceMax - DistanceMin)), 0.0f, 1.0f);
+	float Multiplier = FMath::Lerp(MultiplierMin, MultiplierMax, MultiplierScale);
+
+	// Round the multiplier to the nearest 0.5
+	Multiplier = FMath::RoundToInt (Multiplier * 2) / 2.f;
+
+	return Multiplier;
+}
+
 void ASideRunnerCPPGameMode::SetHighScoreText()
 {
+	// Set current score text
+	FinalScoreText = FText::FromString(FString::Printf(TEXT("Your Score: %i"), FMath::RoundToInt(CurrentScore)));
+
 	// Concat all scores in array to string then convert to text
 	FString HighScoreString;
 	for (auto& Score : HighScoreArray)
@@ -229,7 +271,7 @@ void ASideRunnerCPPGameMode::SetHighScoreText()
 	}	
 	HighScoreText = FText::FromString(HighScoreString);
 	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, HighScoreText.ToString());
-
+	
 	// Concat all names in array to string then convert to text
 	FString NamesString;
 	for (auto& Name : PlayerNameArray)
