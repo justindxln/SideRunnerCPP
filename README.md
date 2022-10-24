@@ -21,14 +21,16 @@ Extra features I have added so far are:
   - Added game over menu UI
   - Added scoring system based on how long the player survives, the closer the player stays to the wall the faster the score increases
   - Added arcade style persistent high scores and player names
-  
+  - Added a powerups systems with health and shield pickups
+  - Added a test mode where a separate library of levels are spawned
+  - Added dynamic HP Bar color
+
 
 Planned extra features include:
-  - Healing items
-  - Limited time powerups
   - More environmental hazards and damage types
   - Status effects
-  
+  - Destructible environment
+
 
 References I've used for this project include:
   - https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/
