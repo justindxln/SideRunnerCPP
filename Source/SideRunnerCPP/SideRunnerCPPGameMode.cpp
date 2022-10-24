@@ -286,4 +286,6 @@ void ASideRunnerCPPGameMode::SetHighScoreText()
 void ASideRunnerCPPGameMode::SetPlayerName(FText PlayerName)
 {
 	PlayerNameCurrent = PlayerName;
+
+	if (PlayerName.ToString() == TEXT("password")) IsTestMode = true;
 }

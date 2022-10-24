@@ -30,6 +30,25 @@ void APlayerStatusManager::Tick(float DeltaTime)
 	if (DamagePerSecondCurrent > 0) {
 		ApplyInstantDamage(DamagePerSecondCurrent * DeltaTime);
 	}
+
+	if (ShieldCurrent > 0) {
+		ShieldCurrent = FMath::Clamp(ShieldCurrent - ShieldDecayRate * DeltaTime, 0.f, ShieldMax);
+	}
+}
+
+void APlayerStatusManager::ReceivePowerUp(EPowerUpType PowerUpType, float PowerUpValue)
+{
+	switch (PowerUpType)
+	{
+	case EPowerUpType::Health:
+		ApplyInstantHealing(PowerUpValue);
+		break;
+	case EPowerUpType::Shield:
+		ApplyShield(PowerUpValue);
+		break;
+	}
+
+
 }
 
 void APlayerStatusManager::ReceiveDamage(float DamageValue, EDamageType DamageType)
@@ -50,9 +69,25 @@ void APlayerStatusManager::EndDamage(float DamageValue, EDamageType DamageType)
 	}
 }
 
+void APlayerStatusManager::ApplyShield(float ShieldAmount)
+{
+	ShieldCurrent = FMath::Clamp(ShieldCurrent + ShieldAmount, 0.f, ShieldMax);
+}
+
+void APlayerStatusManager::ApplyInstantHealing(float HealingAmount)
+{
+	HPCurrent = FMath::Clamp(HPCurrent += HealingAmount, 0.f, HPMax);
+}
+
 void APlayerStatusManager::ApplyInstantDamage(float DamageAmount)
 {
 	if (HPCurrent <= 0.f) return;
+
+	// Shield can block damage before it breaks. Extra damage does not spill over to HP
+	if (ShieldCurrent > 0) {
+		ShieldCurrent = FMath::Clamp(ShieldCurrent - DamageAmount, 0.f, ShieldMax);
+		return;
+	}
 
 	// Apply instant point damage
 	HPCurrent = FMath::Clamp(HPCurrent - DamageAmount, 0.f, HPMax);
@@ -80,6 +115,12 @@ void APlayerStatusManager::TriggerDeath()
 	GameMode->TriggerDeath();
 }
 
+// Get Shield Percentage for the HUD
+float APlayerStatusManager::GetShieldPercentage()
+{
+	return ShieldCurrent / ShieldMax;
+}
+
 // Get HP Percentage for the HUD
 float APlayerStatusManager::GetHPPercentage()
 {
@@ -90,4 +131,12 @@ float APlayerStatusManager::GetHPPercentage()
 FText APlayerStatusManager::GetHPText()
 {
 	return FText::FromString(FString::SanitizeFloat(FMath::RoundToFloat(HPCurrent)));
+}
+
+FLinearColor APlayerStatusManager::GetHPColor()
+{
+	FLinearColor MaxColor = FLinearColor::Green;
+	FLinearColor MinColor = FLinearColor::Red;
+
+	return FLinearColor::LerpUsingHSV(MinColor, MaxColor, GetHPPercentage());
 }

@@ -5,6 +5,7 @@
 #include "BaseLevel.h"
 #include "Engine.h"
 #include "Components/BoxComponent.h"
+#include "SideRunnerCPPGameMode.h"
 
 // Sets default values
 ALevelGenerator::ALevelGenerator()
@@ -35,11 +36,17 @@ void ALevelGenerator::SpawnLevel(bool IsFirstLevel)
 	}
 
 	ABaseLevel* NewLevel = nullptr;
-	RandomLevelIndex = FMath::RandRange(0, 4);
+
+	TArray<TSubclassOf<ABaseLevel>> Database = LevelDatabase;
+	if (ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) {
+		if (GameMode->IsTestMode) Database = TestModeDatabase;
+	}
+
+	RandomLevelIndex = FMath::RandRange(0, Database.Num() - 1);
 
 	// Create a level from a random index in the library
-	if (RandomLevelIndex < LevelDatabase.Num() && LevelDatabase[RandomLevelIndex] != nullptr) {
-		NewLevel = GetWorld()->SpawnActor<ABaseLevel>(LevelDatabase[RandomLevelIndex], 
+	if (Database[RandomLevelIndex] != nullptr) {
+		NewLevel = GetWorld()->SpawnActor<ABaseLevel>(Database[RandomLevelIndex], 
 			SpawnLocation, SpawnRotation, SpawnParameters);
 	}
 

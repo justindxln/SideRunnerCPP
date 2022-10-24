@@ -142,6 +142,9 @@ private:
 	static const float DistanceMax;
 	static const float AnimSpeedMax;
 	static const float AnimSpeedMin;
+
+public:
+	bool IsTestMode = false;
 };
 
 

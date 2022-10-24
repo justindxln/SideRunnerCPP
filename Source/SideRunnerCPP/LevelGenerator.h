@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABaseLevel>> LevelDatabase;
 
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<ABaseLevel>> TestModeDatabase;
+
 	// Maximum number of levels in the scene before oldest ones get destroyed
 	UPROPERTY(EditAnywhere)
 	int MaxLevelAmount = 10;

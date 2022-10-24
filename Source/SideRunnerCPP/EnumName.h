@@ -7,6 +7,14 @@ enum  class EDamageType : uint8
 	Wall,
 };
 
+UENUM()
+enum  class EPowerUpType : uint8
+{
+	Armor,
+	Shield,
+	Health,
+	Speed,
+};
 
 UENUM()
 enum  class EGameState : uint8
