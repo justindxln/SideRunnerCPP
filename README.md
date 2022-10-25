@@ -1,32 +1,40 @@
 # SideRunnerCPP
-Unreal Engine 4 project for myself to learn the engine and C++.
-I started with a simple endless runner game based off of a tutorial and then extended the features on my own from there (acknowledgements below)
+Unreal Engine 4 project to familiarise myself with the engine and C++.
+I started with a simple endless runner game tutorial and then extended the features on my own from there (acknowledgements below)
 
-Extra features I have added so far are:
-  - Stored level blueprints in an array instead of manually linking each as a separate variable
-  - Made the game destroy old levels as new ones are spawned
-  - Offsetted camera to show more on the right side
-  - Fixed level spawn trigger box triggering twice
-  - Added double jump
-  - Added double jump cooldown limitation
-  - Removed instant death and added player HP and damage types (wall does over time damage, spikes do instant damage)
-  - Added main menu UI
-  - Added settings menu UI
-  - Allowed player speed, wall speed, double jump, double jump cooldown to be customisable
-  - Added SaveGame and made player settings persistent
-  - Added HUD UI
-  - Added HP bar and HP Text to HUD
-  - Added distance indicator to HUD (Timeline blink and spin animations, dynamic color based on distance)
-  - Added double jump indicator to HUD (cooldown progress, glow image when double jump is available)
-  - Added game over menu UI
-  - Added scoring system based on how long the player survives, the closer the player stays to the wall the faster the score increases
-  - Added arcade style persistent high scores and player names
-  - Added a powerups systems with health and shield pickups
-  - Added a test mode where a separate library of levels are spawned
-  - Added dynamic HP Bar color
+
+**CURRENT FEATURE EXTENSIONS:**
+
+** Gameplay Systems **
+- Level Generation: All levels are stored in Arrays in Game Mode instead of individual hardcoded references
+- Level Generation: Test mode with special levels are accessible through entering "password" as player name
+- Movement Mechanics: Player movement properties are adjustable and saved in settings menu
+- Core Mechanics: Instant death is removed, and the player has depletable HP and Shield
+- Core Mechanics: Different damage types are introduced, doing instant damage or damage over time
+- Core Mechanics: Powerup pickups in the levels provide boosts to the player (health, shield, speed boost, armor, etc)
+- Scoring: Player accumulates scores as they survive, the more risky they play by staying close to the wall, the higher the score multiplier
+- Scoring: High scores are saved to the game, and displayed at the end of each run
+
+** Menu UI **
+- Main Menu: Player can enter a player name, start a new game, or go to Settings Menu
+- Settings Menu: Player can adjust various game settings and go back to Main Menu. Settings are saved upon returning to Main Menu
+- Game Over Menu: The final score is displayed along with high scores. Player can go back to Main Menu
+
+** HUD UI **
+- Player Status HUD: Player health bar with number text display, dynamic fill color depending on HP, and HP gain/loss animation
+- Player Status HUD: Shield bar showing shield amount around HP bar
+- Player Status HUD: Double Jump indicator light showing double jump availability and cooldown progress
+- Score HUD: Score Multiplier display with dynamic color and animation speed, plus "pop" animation when multiplier changes
+- Score HUD: Current Score display
+
+** Misc **
+- Adjust camera position to show more on the side the player is facing
+- Various edge case bug fixes to the original tutorial code
+- Aesthetic changes to the moving wall and obstacles
 
 
 Planned extra features include:
+  - Pickups with both positive and negative effects
   - More environmental hazards and damage types
   - Status effects
   - Destructible environment
