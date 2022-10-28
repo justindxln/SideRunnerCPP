@@ -39,6 +39,8 @@ Planned extra features include:
   - Status effects
   - Destructible environment
 
+Assets I've used for this project:
+  - https://krukowski.itch.io/free-sci-fi-game-icons
 
 References I've used for this project include:
   - https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/
