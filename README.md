@@ -48,4 +48,5 @@ References I've used for this project include:
   - https://unrealcpp.com/
   - https://www.youtube.com/watch?v=4M2v2SYJDJk
   - https://docs.unrealengine.com/4.27/en-US/
+  - https://joyrok.com/UMG-Layouts-Tips-and-Tricks
  
