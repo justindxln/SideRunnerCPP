@@ -32,10 +32,18 @@ protected:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Triggers")
 	UBoxComponent* SpawnLocation;
+
+	// Used to make sure each level only triggers level spawn once
+	bool SpawnTriggerUsed;
 	
 public:
 	UBoxComponent* GetTrigger();
 	UBoxComponent* GetSpawnLocation();
+
+	DECLARE_DYNAMIC_DELEGATE(FBaseLevelOverlapSignature);
+
+	FBaseLevelOverlapSignature OnOverlapPlayer;
+	FBaseLevelOverlapSignature OnOverlapWall;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,

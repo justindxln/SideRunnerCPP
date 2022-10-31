@@ -10,10 +10,11 @@ enum  class EDamageType : uint8
 UENUM()
 enum  class EPowerUpType : uint8
 {
-	Armor,
+	Healing,
 	Shield,
 	Health,
 	Speed,
+	ScoreBoost,
 };
 
 UENUM()

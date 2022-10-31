@@ -4,6 +4,7 @@
 #include "Spikes.h"
 #include "RunnerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "PlayerStatusManager.h"
 
 // Sets default values
 ASpikes::ASpikes()

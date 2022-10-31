@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "PlayerStatusManager.h"
 #include "EnumName.h"
 #include "SideRunnerCPPGameMode.generated.h"
 
@@ -14,6 +13,8 @@ class ASpikes;
 class AKillWall;
 class ARunnerCharacter;
 class ASideRunnerPlayerController;
+class APlayerStatusManager;
+class ALevelGenerator;
 
 UCLASS(minimalapi)
 class ASideRunnerCPPGameMode : public AGameModeBase
@@ -33,6 +34,7 @@ public:
 public:
 	UPROPERTY(BlueprintReadOnly)
 	APlayerStatusManager* PlayerStatusManager;
+	ALevelGenerator* LevelGenerator;
 
 	// Swapping in/out menus
 	UFUNCTION(BlueprintCallable, Category = "Side Runner UI")
@@ -47,14 +49,18 @@ public:
 	FLinearColor GetDistanceLightColor();
 	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
 	float GetGlowAnimSpeed();
+	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
+	FText GetScoreBoostText();
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
 	void StartNewGame();
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
 	void SaveGame();
-
 	void LoadGame();
+
+	// Triggered by powerup that increases score multiplier but also wall speed
+	void TriggerScoreBoost();
 
 	void TriggerDeath();
 
@@ -70,6 +76,8 @@ protected:
 	TSubclassOf<ASpikes> KillWallClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Manager Blueprints")
 	TSubclassOf<APlayerStatusManager> PlayerStatusManagerClass;
+	UPROPERTY(EditAnywhere, Category = "Manager Blueprints")
+	TSubclassOf<ALevelGenerator> LevelGeneratorClass;
 
 	// Current Widget references
 	UPROPERTY()
@@ -112,6 +120,21 @@ protected:
 	TArray<FText> PlayerNameArray;
 	FText PlayerNameCurrent;
 
+	// Score Multiplier stuff
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float DistanceMin = 800.f;
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float DistanceMax = 2000.f;
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float AnimSpeedMax = 2.5f;
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float AnimSpeedMin = 0.3f;
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float ScoreMultiplierMax = 5.0f;
+	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
+	float ScoreMultiplierMin = 1.0f;
+	uint8 CurrentScoreBoost = 0;
+
 	// Enum to store whether the game is being played
 	EGameState GameState;
 
@@ -136,12 +159,6 @@ protected:
 	float GetPlayerWallDistance();
 
 	float GetScoreMultiplier();
-
-private:
-	static const float DistanceMin;
-	static const float DistanceMax;
-	static const float AnimSpeedMax;
-	static const float AnimSpeedMin;
 
 public:
 	bool IsTestMode = false;

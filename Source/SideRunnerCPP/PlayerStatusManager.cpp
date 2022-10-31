@@ -31,9 +31,33 @@ void APlayerStatusManager::Tick(float DeltaTime)
 		ApplyInstantDamage(DamagePerSecondCurrent * DeltaTime);
 	}
 
-	if (ShieldCurrent > 0) {
-		ShieldCurrent = FMath::Clamp(ShieldCurrent - ShieldDecayRate * DeltaTime, 0.f, ShieldMax);
+	//if (ShieldDecayRate > 0 && ShieldCurrent > 0) {
+	//	ShieldCurrent = FMath::Clamp(ShieldCurrent - ShieldDecayRate * DeltaTime, 0.f, ShieldMax);
+	//}
+
+	if (SpeedDuration > 0) {
+		SpeedDuration = FMath::Clamp(SpeedDuration - DeltaTime, 0.f, SpeedDurationMax);
+		if (SpeedDuration <= 0.f) {
+			ToggleSpeedBuff(false);
+		}
 	}
+
+	if (HealStatusDuration > 0) {
+		HealStatusDuration = FMath::Clamp(HealStatusDuration - DeltaTime, 0.f, HealStatusDurationMax);
+		ApplyInstantHealing(HealStatusPerSecond * DeltaTime);
+
+		if (HealStatusDuration <= 0.f) {
+			ToggleHealing(false);
+		}
+	}
+}
+
+void APlayerStatusManager::SetClassReferences(ASideRunnerCPPGameMode* CurrentGameMode, UUserWidget* CurrentHUDWidget)
+{
+	GameMode = CurrentGameMode;
+	HUDWidget = CurrentHUDWidget;
+
+	DoSetHUDReference();
 }
 
 void APlayerStatusManager::ReceivePowerUp(EPowerUpType PowerUpType, float PowerUpValue)
@@ -44,18 +68,73 @@ void APlayerStatusManager::ReceivePowerUp(EPowerUpType PowerUpType, float PowerU
 		ApplyInstantHealing(PowerUpValue);
 		break;
 	case EPowerUpType::Shield:
-		ApplyShield(PowerUpValue);
+		ToggleShield(true);
+		break;
+	case EPowerUpType::Speed:
+		ToggleSpeedBuff(true);
+		break;
+	case EPowerUpType::Healing:
+		ToggleHealing(true);
+		break;
+	case EPowerUpType::ScoreBoost:
+		ApplyScoreBoost();
 		break;
 	}
+}
 
+void APlayerStatusManager::ToggleSpeedBuff(bool Active)
+{
+	// Refresh the buff, but to not apply the speed increase again if the buff is already active
+	bool BuffRefresh = Active && SpeedDuration > 0;
 
+	if (Active) {
+		SpeedDuration = SpeedDurationMax;
+	}
+	if (BuffRefresh) return;
+
+	Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))->ToggleSpeedBuff(Active, SpeedBuffAmount);
+
+	DoHUDToggleSpeed(Active);
+}
+
+void APlayerStatusManager::ToggleShield(bool Active)
+{
+	if (Active) {
+		ShieldCurrent = FMath::Clamp(ShieldCurrent + 100.0f, 0.f, ShieldMax);
+	}
+	else {
+		ShieldCurrent = 0;
+	}
+
+	DoHUDToggleShield(Active);
+}
+
+void APlayerStatusManager::ToggleHealing(bool Active)
+{
+	if (Active) {
+		HealStatusDuration = HealStatusDurationMax;
+	}
+
+	DoHUDToggleHealing(Active);
+}
+
+void APlayerStatusManager::ApplyScoreBoost()
+{
+	GameMode->TriggerScoreBoost();
+
+	DoHUDApplyScoreBoost();
+}
+
+void APlayerStatusManager::ApplyInstantHealing(float HealingAmount)
+{
+	HPCurrent = FMath::Clamp(HPCurrent += HealingAmount, 0.f, HPMax);
+	DoHUDAddHealth();
 }
 
 void APlayerStatusManager::ReceiveDamage(float DamageValue, EDamageType DamageType)
 {
 	if (DamageType == EDamageType::Wall) {
 		AddDamageOverTime(DamageValue);
-
 	}
 	else if (DamageType == EDamageType::Spike) {
 		ApplyInstantDamage(DamageValue);
@@ -69,28 +148,26 @@ void APlayerStatusManager::EndDamage(float DamageValue, EDamageType DamageType)
 	}
 }
 
-void APlayerStatusManager::ApplyShield(float ShieldAmount)
-{
-	ShieldCurrent = FMath::Clamp(ShieldCurrent + ShieldAmount, 0.f, ShieldMax);
-}
-
-void APlayerStatusManager::ApplyInstantHealing(float HealingAmount)
-{
-	HPCurrent = FMath::Clamp(HPCurrent += HealingAmount, 0.f, HPMax);
-}
-
 void APlayerStatusManager::ApplyInstantDamage(float DamageAmount)
 {
 	if (HPCurrent <= 0.f) return;
 
 	// Shield can block damage before it breaks. Extra damage does not spill over to HP
 	if (ShieldCurrent > 0) {
-		ShieldCurrent = FMath::Clamp(ShieldCurrent - DamageAmount, 0.f, ShieldMax);
+		//ShieldCurrent = FMath::Clamp(ShieldCurrent - DamageAmount, 0.f, ShieldMax);
+		ToggleShield(false);
 		return;
+	}
+
+	// Cancel Heal Status when the player takes damage
+	if (HealStatusDuration > 0.f) {
+		HealStatusDuration = 0.f;
+		ToggleHealing(false);
 	}
 
 	// Apply instant point damage
 	HPCurrent = FMath::Clamp(HPCurrent - DamageAmount, 0.f, HPMax);
+	DoHUDTakeDamage();
 
 	// Player dies if health below zero
 	if (HPCurrent <= 0) {
@@ -113,6 +190,18 @@ void APlayerStatusManager::SubtractDamageOverTime(float DamagePerSecond)
 void APlayerStatusManager::TriggerDeath()
 {
 	GameMode->TriggerDeath();
+}
+
+// Get Heal Status duration for the HUD
+float APlayerStatusManager::GetHealPercentage()
+{
+	return HealStatusDuration / HealStatusDurationMax;
+}
+
+// Get Speed duration for the HUD
+float APlayerStatusManager::GetSpeedPercentage()
+{
+	return SpeedDuration / SpeedDurationMax;
 }
 
 // Get Shield Percentage for the HUD

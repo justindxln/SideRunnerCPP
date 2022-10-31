@@ -8,6 +8,8 @@
 #include "RunnerCharacter.h"
 #include "SideRunnerPlayerController.h"
 #include "SideRunnerSaveGame.h"
+#include "PlayerStatusManager.h"
+#include "LevelGenerator.h"
 
 ASideRunnerCPPGameMode::ASideRunnerCPPGameMode()
 {
@@ -20,11 +22,6 @@ ASideRunnerCPPGameMode::ASideRunnerCPPGameMode()
 
 	PrimaryActorTick.bCanEverTick = true;
 }
-
-const float ASideRunnerCPPGameMode::DistanceMax = 2000.f;
-const float ASideRunnerCPPGameMode::DistanceMin = 800.f;
-const float ASideRunnerCPPGameMode::AnimSpeedMax = 2.5f;
-const float ASideRunnerCPPGameMode::AnimSpeedMin = 0.3f;
 
 void ASideRunnerCPPGameMode::Tick(float DeltaTime)
 {
@@ -112,6 +109,21 @@ void ASideRunnerCPPGameMode::StartNewGame()
 		Destroy(PlayerStatusManager);
 	}
 	PlayerStatusManager = GetWorld()->SpawnActor<APlayerStatusManager>(PlayerStatusManagerClass, FActorSpawnParameters());
+	PlayerStatusManager->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
+
+	if (LevelGenerator != nullptr) {
+		Destroy(LevelGenerator);
+	}
+	LevelGenerator = GetWorld()->SpawnActor<ALevelGenerator>(LevelGeneratorClass, FActorSpawnParameters());
+	LevelGenerator->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
+
+	/*
+	UChildActorComponent* PlayerStatusManagerComp = NewObject<UChildActorComponent>(this);
+	PlayerStatusManagerComp->RegisterComponent();
+	PlayerStatusManagerComp->SetChildActorClass(APlayerStatusManager::StaticClass());
+	PlayerStatusManagerComp->CreateChildActor();
+	PlayerStatusManager = Cast<APlayerStatusManager>(PlayerStatusManagerComp->GetChildActor());
+	*/
 
 	// Set input mode in player controller
 	if (!PlayerController) {
@@ -127,6 +139,9 @@ void ASideRunnerCPPGameMode::StartNewGame()
 
 	// Add HUD widget to viewport
 	ChangeHUDWidget(HUDWidgetClass);
+
+	// Set up references for Player Status Manager
+	if (PlayerStatusManager) PlayerStatusManager->SetClassReferences(this, CurrentHUDWidget);
 }
 
 // Get light color for the HUD glowing light depending on distance between player and wall
@@ -155,6 +170,11 @@ float ASideRunnerCPPGameMode::GetGlowAnimSpeed()
 	float SpeedRatio = 1.0f - (FMath::Clamp(GetPlayerWallDistance(), DistanceMin, DistanceMax) - DistanceMin) / (DistanceMax - DistanceMin);
 
 	return FMath::Lerp(SpeedRatio, AnimSpeedMax, AnimSpeedMin);
+}
+
+FText ASideRunnerCPPGameMode::GetScoreBoostText()
+{
+	return FText::FromString(FString::Printf(TEXT("x%i"), CurrentScoreBoost));
 }
 
 void ASideRunnerCPPGameMode::SaveGame()
@@ -190,6 +210,13 @@ void ASideRunnerCPPGameMode::LoadGame()
 
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString((TEXT("LOADING DATA"))));
 	}
+}
+
+void ASideRunnerCPPGameMode::TriggerScoreBoost()
+{
+	KillWall->BoostMoveSpeed(100.f);
+	ScoreMultiplierMax += 1.0f;
+	CurrentScoreBoost++;
 }
 
 void ASideRunnerCPPGameMode::TriggerDeath()
@@ -240,9 +267,6 @@ float ASideRunnerCPPGameMode::GetPlayerWallDistance()
 
 float ASideRunnerCPPGameMode::GetScoreMultiplier()
 {
-	float MultiplierMax = 5.0f;
-	float MultiplierMin = 1.0f;
-
 	// Get distance between player and wall, increase it to 0 if it's negative
 	float BaseDistance = GetPlayerWallDistance();
 	BaseDistance = FMath::Clamp<float>(BaseDistance, 0.f, BaseDistance);
@@ -250,7 +274,7 @@ float ASideRunnerCPPGameMode::GetScoreMultiplier()
 	// Get position on the multiplier scale based on distance
 	// The closer the player to the wall, the higher the multiplier
 	float MultiplierScale = FMath::Clamp(1.0f - ((BaseDistance - DistanceMin) / (DistanceMax - DistanceMin)), 0.0f, 1.0f);
-	float Multiplier = FMath::Lerp(MultiplierMin, MultiplierMax, MultiplierScale);
+	float Multiplier = FMath::Lerp(ScoreMultiplierMin, ScoreMultiplierMax, MultiplierScale);
 
 	// Round the multiplier to the nearest 0.5
 	Multiplier = FMath::RoundToInt (Multiplier * 2) / 2.f;

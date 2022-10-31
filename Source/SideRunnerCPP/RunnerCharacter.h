@@ -40,9 +40,6 @@ protected:
 
 	bool CanMove;
 
-	float HPMax;
-	float HPCurrent;
-
 	// The damage over time player will take per second while it's active
 	float DamageContinuous;
 
@@ -64,16 +61,13 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	float GetHPPercentage();
-
-	UFUNCTION(BlueprintCallable)
 	float GetDoubleJumpCoolDownPercentage();
-
-	UFUNCTION(BlueprintCallable)
-	FText GetHPText();
 
 	// Called when HP is 0 to stop movement
 	void TriggerDeath();
+
+	// Called by Player Status Manager to toggle Speed Buff
+	void ToggleSpeedBuff(bool Active, float BuffAmount);
 
 	void ToggleMovement(bool AllowMovement = true);
 

@@ -30,6 +30,8 @@ public:
 	// Called when level begins so the wall starts moving
 	void SetCanMove(bool bCanMove = true);
 
+	void BoostMoveSpeed(float ExtraMoveSpeed);
+
 private:
 	float MoveSpeed = 350.0f;
 	bool CanMove = false;

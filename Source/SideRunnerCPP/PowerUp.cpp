@@ -4,6 +4,7 @@
 #include "PowerUp.h"
 #include "RunnerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "PlayerStatusManager.h"
 
 // Sets default values
 APowerUp::APowerUp()

@@ -38,8 +38,6 @@ ARunnerCharacter::ARunnerCharacter()
 
 	tempPos = GetActorLocation();
 	zPosition = tempPos.Z + 300.f;
-
-	HPMax = 100.f;
 }
 
 // Called when the game starts or when spawned
@@ -48,7 +46,7 @@ void ARunnerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ToggleMovement(false);
-	HPCurrent = HPMax;
+
 }
 
 // Called every frame
@@ -120,21 +118,15 @@ void ARunnerCharacter::TriggerDeath()
 	//Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))->RestartGame();
 }
 
-// Get HP Percentage for the HUD
-float ARunnerCharacter::GetHPPercentage()
+void ARunnerCharacter::ToggleSpeedBuff(bool Active, float BuffAmount)
 {
-	return HPCurrent / HPMax;
+	GetCharacterMovement()->MaxWalkSpeed += Active ? BuffAmount : -BuffAmount;
+	GetCharacterMovement()->MaxFlySpeed += Active ? BuffAmount : -BuffAmount;
 }
 
 float ARunnerCharacter::GetDoubleJumpCoolDownPercentage()
 {
 	return FMath::Clamp(DoubleJumpCoolDown / DoubleJumpCoolDownMax, 0.0f, 1.0f);
-}
-
-// Get HP Text for the HUD
-FText ARunnerCharacter::GetHPText()
-{
-	return FText::FromString(FString::SanitizeFloat(FMath::RoundToFloat(HPCurrent)));
 }
 
 void ARunnerCharacter::ToggleMovement(bool AllowMovement /*= true*/)

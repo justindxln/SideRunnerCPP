@@ -35,3 +35,8 @@ void AKillWall::SetCanMove(bool bCanMove /*= true*/)
 {
 	CanMove = bCanMove;
 }
+
+void AKillWall::BoostMoveSpeed(float ExtraMoveSpeed)
+{
+	MoveSpeed += ExtraMoveSpeed;
+}

@@ -28,13 +28,27 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Status Values")
+	float HealStatusPerSecond = 4.0f;
+	UPROPERTY(EditAnywhere, Category = "Status Durations")
+	float HealStatusDurationMax = 10;
+	UPROPERTY(EditAnywhere, Category = "Status Values")
+	float SpeedBuffAmount = 200.0f;
+	UPROPERTY(EditAnywhere, Category = "Status Durations")
+	float SpeedDurationMax = 3.0f;
+	UPROPERTY(EditAnywhere, Category = "Unused")
 	float ShieldMax = 100.f;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Unused")
 	float ShieldDecayRate = 5.f;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Base Character Stats")
 	float HPMax = 100.f;
 
+	ASideRunnerCPPGameMode* GameMode;
+	UPROPERTY(BlueprintReadOnly)
+	UUserWidget* HUDWidget;
+
+	float HealStatusDuration;
+	float SpeedDuration;
 	float ShieldCurrent;
 	float HPCurrent;
 	float ArmorCurrent;
@@ -42,9 +56,16 @@ protected:
 	// The damage over time player will take per second while it's active
 	float DamagePerSecondCurrent;
 
+	// Turn on/off Movement Speed buff
+	void ToggleSpeedBuff(bool Active);
 
-	// Add Shield Value
-	void ApplyShield(float ShieldAmount);
+	// Turn on/off Shield status
+	void ToggleShield(bool Active);
+
+	// Turn on/off Healing status effect
+	void ToggleHealing(bool Active);
+
+	void ApplyScoreBoost();
 
 	// Apply healing instantly
 	void ApplyInstantHealing(float HealingAmount);
@@ -61,8 +82,25 @@ protected:
 	// Called when HP is 0 to restart level
 	void TriggerDeath();
 
+	// Functions to implement in Blueprint class
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoSetHUDReference();
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDAddHealth();
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDTakeDamage();
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDToggleShield(bool Active);
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDToggleSpeed(bool Active);
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDToggleHealing(bool Active);
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoHUDApplyScoreBoost();
+
 public:
-	ASideRunnerCPPGameMode* GameMode;
+	// Called by GameMode after construction to set class references
+	void SetClassReferences(ASideRunnerCPPGameMode* CurrentGameMode, UUserWidget* CurrentHUDWidget);
 
 	// Call when player collides with a powerup to trigger the effect
 	void ReceivePowerUp(EPowerUpType PowerUpType, float PowerUpValue);
@@ -72,6 +110,14 @@ public:
 
 	// Call to stop applying damage over time
 	void EndDamage(float DamageValue, EDamageType DamageType);
+
+	// Get Heal Status duration for the HUD
+	UFUNCTION(BlueprintCallable)
+	float GetHealPercentage();
+
+	// Get Speed duration for the HUD
+	UFUNCTION(BlueprintCallable)
+	float GetSpeedPercentage();
 
 	// Get Shield Percentage for the HUD
 	UFUNCTION(BlueprintCallable)

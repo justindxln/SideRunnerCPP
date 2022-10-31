@@ -19,18 +19,18 @@ void ALevelGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SpawnLevel(true);
+	SpawnLevel();
 	SpawnLevel();
 }
 
-void ALevelGenerator::SpawnLevel(bool IsFirstLevel)
+void ALevelGenerator::SpawnLevel()
 {
 	// Set default spawn location for first level
 	SpawnLocation = FVector(0.f, 1000.f, 0.f);
 	SpawnRotation = FRotator(0, 90, 0);
 
 	// If not first level, get spawn location from the last spawned level
-	if (!IsFirstLevel) {
+	if (LevelList.Num() > 0) {
 		ABaseLevel* LastLevel = LevelList.Last();
 		SpawnLocation = LastLevel->GetSpawnLocation()->GetComponentTransform().GetTranslation();
 	}
@@ -53,21 +53,17 @@ void ALevelGenerator::SpawnLevel(bool IsFirstLevel)
 	// Set the collision trigger events
 	if (NewLevel) {
 		if (NewLevel->GetTrigger()) {
-			NewLevel->GetTrigger()->OnComponentBeginOverlap.AddDynamic(this, &ALevelGenerator::OnOverlapBegin);
 			NewLevel->GetTrigger()->OnComponentBeginOverlap.AddDynamic(NewLevel, &ABaseLevel::OnOverlapBegin);
+			NewLevel->OnOverlapPlayer.BindDynamic(this, &ALevelGenerator::SpawnLevel);
+			NewLevel->OnOverlapWall.BindDynamic(this, &ALevelGenerator::DestroyOldestLevel);
 		}
 	}
 
-	// Add level to list and destroy oldest one if the list is too big
 	LevelList.Add(NewLevel);
-	if (LevelList.Num() > MaxLevelAmount) {
-		GetWorld()->DestroyActor(LevelList[0]);
-		LevelList.RemoveAt(0);
-	}
 }
 
-void ALevelGenerator::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ALevelGenerator::DestroyOldestLevel()
 {
-	SpawnLevel();
+	GetWorld()->DestroyActor(LevelList[0]);
+	LevelList.RemoveAt(0);
 }
-

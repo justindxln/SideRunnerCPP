@@ -3,6 +3,8 @@
 
 #include "BaseLevel.h"
 #include "Components/BoxComponent.h"
+#include "RunnerCharacter.h"
+#include "KillWall.h"
 
 // Sets default values
 ABaseLevel::ABaseLevel()
@@ -40,7 +42,15 @@ UBoxComponent* ABaseLevel::GetSpawnLocation()
 
 void ABaseLevel::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	DisableTrigger();
+	if (ARunnerCharacter* Player = Cast<ARunnerCharacter>(OtherActor)) {
+		if (SpawnTriggerUsed) return;
+
+		OnOverlapPlayer.ExecuteIfBound();
+		SpawnTriggerUsed = true;
+	}
+	else if (AKillWall* KillWall = Cast<AKillWall>(OtherActor)) {
+		OnOverlapWall.ExecuteIfBound();
+	}
 }
 
 void ABaseLevel::DisableTrigger()
