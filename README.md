@@ -1,5 +1,5 @@
 # SideRunnerCPP
-Unreal Engine 4 project to familiarise myself with the engine and C++.
+This is an Unreal Engine 4 learning project for myself to dive into the Unreal Engine 4 C++ API and the Unreal Motion Graphics system
 I started with a simple endless runner game tutorial and then extended the features on my own from there (acknowledgements below)
 
 
@@ -11,7 +11,7 @@ I started with a simple endless runner game tutorial and then extended the featu
 - Movement Mechanics: Player movement properties are adjustable and saved in settings menu
 - Core Mechanics: Instant death is removed, and the player has depletable HP and Shield
 - Core Mechanics: Different damage types are introduced, doing instant damage or damage over time
-- Core Mechanics: Powerup pickups in the levels provide boosts to the player (health, shield, speed boost, armor, etc)
+- Core Mechanics: Powerup pickups in the levels provide boosts to the player (health, healing, shield, speed boost, score boost, etc)
 - Scoring: Player accumulates scores as they survive, the more risky they play by staying close to the wall, the higher the score multiplier
 - Scoring: High scores are saved to the game, and displayed at the end of each run
 
@@ -22,21 +22,20 @@ I started with a simple endless runner game tutorial and then extended the featu
 
 ** HUD UI **
 - Player Status HUD: Player health bar with number text display, dynamic fill color depending on HP, and HP gain/loss animation
-- Player Status HUD: Shield bar showing shield amount around HP bar
+- Player Status HUD: Shield bar showing shield presence around HP bar
 - Player Status HUD: Double Jump indicator light showing double jump availability and cooldown progress
+- Player Status HUD: Status Icons Tray shows current active status effects and their remaining durations and/or stack amount
 - Score HUD: Score Multiplier display with dynamic color and animation speed, plus "pop" animation when multiplier changes
 - Score HUD: Current Score display
 
 ** Misc **
 - Adjust camera position to show more on the side the player is facing
-- Various edge case bug fixes to the original tutorial code
-- Aesthetic changes to the moving wall and obstacles
+- Various edge case bug fixes and code architecture reworks to the original tutorial code
+- Various aesthetic changes
 
 
 Planned extra features include:
-  - Pickups with both positive and negative effects
   - More environmental hazards and damage types
-  - Status effects
   - Destructible environment
 
 Assets I've used for this project:
