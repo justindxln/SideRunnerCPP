@@ -221,11 +221,3 @@ FText APlayerStatusManager::GetHPText()
 {
 	return FText::FromString(FString::SanitizeFloat(FMath::RoundToFloat(HPCurrent)));
 }
-
-FLinearColor APlayerStatusManager::GetHPColor()
-{
-	FLinearColor MaxColor = FLinearColor::Green;
-	FLinearColor MinColor = FLinearColor::Red;
-
-	return FLinearColor::LerpUsingHSV(MinColor, MaxColor, GetHPPercentage());
-}

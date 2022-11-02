@@ -130,8 +130,4 @@ public:
 	// Get HP number text for the HUD
 	UFUNCTION(BlueprintCallable)
 	FText GetHPText();
-
-	// Get color for HP bar for the HUD
-	UFUNCTION(BlueprintCallable)
-	FLinearColor GetHPColor();
 };

@@ -46,9 +46,7 @@ public:
 
 	// HUD functions
 	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
-	FLinearColor GetDistanceLightColor();
-	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
-	float GetGlowAnimSpeed();
+	float GetWallDistanceLerpRatio(bool ClampUpper = true);
 	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
 	FText GetScoreBoostText();
 
@@ -125,10 +123,6 @@ protected:
 	float DistanceMin = 800.f;
 	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
 	float DistanceMax = 2000.f;
-	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
-	float AnimSpeedMax = 2.5f;
-	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
-	float AnimSpeedMin = 0.3f;
 	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")
 	float ScoreMultiplierMax = 5.0f;
 	UPROPERTY(EditAnywhere, Category = "Score Multiplier Properties")

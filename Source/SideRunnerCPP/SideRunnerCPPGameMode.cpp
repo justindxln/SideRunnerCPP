@@ -144,32 +144,13 @@ void ASideRunnerCPPGameMode::StartNewGame()
 	if (PlayerStatusManager) PlayerStatusManager->SetClassReferences(this, CurrentHUDWidget);
 }
 
-// Get light color for the HUD glowing light depending on distance between player and wall
-FLinearColor ASideRunnerCPPGameMode::GetDistanceLightColor()
+// Get Alpha/Ratio value for Lerping in HUD and Scoring functions
+float ASideRunnerCPPGameMode::GetWallDistanceLerpRatio(bool ClampUpper/*= true*/)
 {
-	if (!PlayerCharacter || !KillWall) { return FLinearColor::White; }
-
-	FLinearColor NearColor = FLinearColor::Red; 
-	FLinearColor MidColor = FLinearColor::Yellow;
-	FLinearColor FarColor = FLinearColor::Green;
-
 	float WallDistance = GetPlayerWallDistance();
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("distance is %f"), WallDistance));
+	WallDistance = FMath::Clamp(GetPlayerWallDistance(), DistanceMin, ClampUpper ? DistanceMax : WallDistance);
 
-	if (WallDistance > DistanceMax) { return FarColor; }
-
-	float ColorRatio = (FMath::Clamp(WallDistance, DistanceMin, DistanceMax) - DistanceMin) / (DistanceMax - DistanceMin);
-
-	return FLinearColor::LerpUsingHSV(NearColor, MidColor, ColorRatio);
-}
-
-
-// Get the speed multiplier for the HUD glowing light depending on distance between player and wall
-float ASideRunnerCPPGameMode::GetGlowAnimSpeed()
-{
-	float SpeedRatio = 1.0f - (FMath::Clamp(GetPlayerWallDistance(), DistanceMin, DistanceMax) - DistanceMin) / (DistanceMax - DistanceMin);
-
-	return FMath::Lerp(SpeedRatio, AnimSpeedMax, AnimSpeedMin);
+	return (WallDistance - DistanceMin) / (DistanceMax - DistanceMin);
 }
 
 FText ASideRunnerCPPGameMode::GetScoreBoostText()
@@ -267,14 +248,9 @@ float ASideRunnerCPPGameMode::GetPlayerWallDistance()
 
 float ASideRunnerCPPGameMode::GetScoreMultiplier()
 {
-	// Get distance between player and wall, increase it to 0 if it's negative
-	float BaseDistance = GetPlayerWallDistance();
-	BaseDistance = FMath::Clamp<float>(BaseDistance, 0.f, BaseDistance);
-
 	// Get position on the multiplier scale based on distance
 	// The closer the player to the wall, the higher the multiplier
-	float MultiplierScale = FMath::Clamp(1.0f - ((BaseDistance - DistanceMin) / (DistanceMax - DistanceMin)), 0.0f, 1.0f);
-	float Multiplier = FMath::Lerp(ScoreMultiplierMin, ScoreMultiplierMax, MultiplierScale);
+	float Multiplier = FMath::Lerp(ScoreMultiplierMax, ScoreMultiplierMin, GetWallDistanceLerpRatio());
 
 	// Round the multiplier to the nearest 0.5
 	Multiplier = FMath::RoundToInt (Multiplier * 2) / 2.f;
