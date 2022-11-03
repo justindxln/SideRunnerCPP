@@ -34,14 +34,22 @@ public:
 	virtual void OnJumped_Implementation() override;
 
 protected:
-	// Position info to place the camera
-	float zPosition;
-	FVector tempPos = FVector();
+	// Camera control variables
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float MinCameraTruckRate = 60.f;
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float CameraTruckRateFactor = 0.75f;
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float MaxCameraYOffset = 200.f;
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float CameraXOffset = -850.f;
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float InitialCameraZOffset = 300.f;
+	float CameraYOffset;
+	float CameraZLocation;
+	bool IsPlayerFacingRight;
 
 	bool CanMove;
-
-	// The damage over time player will take per second while it's active
-	float DamageContinuous;
 
 	// Used to keep track of double jump availability
 	int32 JumpMaxCountOriginal;
@@ -53,13 +61,10 @@ protected:
 
 	void RecoverJumpCount();
 
-public:
-	// Return the attached camera
-	class UCameraComponent* GetSideViewCameraComponent() const
-	{
-		return SideViewCamera;
-	}
+	// Call every frame to shift camera location based on where the player is facing
+	void MoveCamera(float DeltaTime);
 
+public:
 	UFUNCTION(BlueprintCallable)
 	float GetDoubleJumpCoolDownPercentage();
 

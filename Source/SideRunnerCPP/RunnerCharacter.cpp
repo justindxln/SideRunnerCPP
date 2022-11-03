@@ -20,24 +20,23 @@ ARunnerCharacter::ARunnerCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_EngineTraceChannel1, ECR_Overlap);
 
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationRoll = false;
-	bUseControllerRotationYaw = false;
-
 	SideViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Side View Camera"));
 	SideViewCamera->bUsePawnControlRotation = false;
 
+	/*
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
 	GetCharacterMovement()->GravityScale = 2.f;
 	GetCharacterMovement()->AirControl = 0.8f;
-	GetCharacterMovement()->JumpZVelocity = 1000.f;
 	GetCharacterMovement()->GroundFriction = 3.f;
 	GetCharacterMovement()->MaxWalkSpeed = 600.f;
 	GetCharacterMovement()->MaxFlySpeed = 600.f;
+	*/
 
-	tempPos = GetActorLocation();
-	zPosition = tempPos.Z + 300.f;
+	CameraZLocation = GetActorLocation().Z + InitialCameraZOffset;
 }
 
 // Called when the game starts or when spawned
@@ -54,12 +53,7 @@ void ARunnerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Set camera position
-	tempPos = GetActorLocation();
-	tempPos.X -= 850.f;
-	tempPos.Y += 200.f;
-	tempPos.Z = zPosition;
-	SideViewCamera->SetWorldLocation(tempPos);
+	MoveCamera(DeltaTime);
 
 	// Recover double jump if applicable and on cooldown
 	if (JumpMaxCountOriginal > 1 && DoubleJumpCoolDown < DoubleJumpCoolDownMax) {
@@ -77,7 +71,7 @@ void ARunnerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ARunnerCharacter::Jump);
-	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARunnerCharacter::MoveRight);
 }
@@ -87,11 +81,12 @@ void ARunnerCharacter::MoveRight(float value)
 	if (CanMove) {
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		AddMovementInput(FVector(0.f, 1.f, 0.f), value);
-		
-		//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Pitch %f"), GetCharacterMovement()->RotationRate.Pitch));
-		//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Roll %f"), GetCharacterMovement()->RotationRate.Roll));
-		//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Yaw %f"), GetCharacterMovement()->RotationRate.Yaw));
 	}
+
+	// Move the camera depending on where the player is going
+	// If no movement is detected, maintain camera direction
+	if (value > 0) IsPlayerFacingRight = true;
+	else if (value < 0) IsPlayerFacingRight = false;
 }
 
 void ARunnerCharacter::OnJumped_Implementation()
@@ -109,13 +104,30 @@ void ARunnerCharacter::RecoverJumpCount()
 	JumpMaxCount++;
 }
 
+void ARunnerCharacter::MoveCamera(float DeltaTime)
+{
+	// Set shift speed based on how far the camera is from target destination
+	float YDistanceFromTarget = IsPlayerFacingRight ? MaxCameraYOffset - CameraYOffset : CameraYOffset;
+	float CameraTruckRate = YDistanceFromTarget * CameraTruckRateFactor;
+
+	// Shift camera to the left/right depend on player direction, then clamp within set limits
+	CameraYOffset = CameraYOffset + (DeltaTime * (IsPlayerFacingRight ? CameraTruckRate : -CameraTruckRate));
+	CameraYOffset = FMath::Clamp(CameraYOffset, 0.f, MaxCameraYOffset);
+
+	// Set camera location by applying offset vector to player location
+	// Z location is fixed so camera doesn't move when the player jumps
+	FVector CameraLocation = GetActorLocation() + FVector(CameraXOffset, CameraYOffset, 0.f);
+	CameraLocation.Z = CameraZLocation;
+	SideViewCamera->SetWorldLocation(CameraLocation);
+}
+
+// Disable movement and collision and hide mesh when HP is 0
 void ARunnerCharacter::TriggerDeath()
 {
 	GetMesh()->Deactivate();
 	GetMesh()->SetVisibility(false);
 
 	CanMove = false;
-	//Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))->RestartGame();
 }
 
 void ARunnerCharacter::ToggleSpeedBuff(bool Active, float BuffAmount)
