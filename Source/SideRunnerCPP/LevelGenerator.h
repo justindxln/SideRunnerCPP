@@ -39,8 +39,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABaseLevel>> TestModeDatabase;
 
-
+	UPROPERTY(EditAnywhere)
 	FVector DefaultSpawnLocation = FVector(0.f, 1000.f, 0.f);
+
+	UPROPERTY(EditAnywhere)
 	FRotator DefaultSpawnRotation = FRotator(0, 90, 0);
+
 	int RandomLevelIndex;
 };

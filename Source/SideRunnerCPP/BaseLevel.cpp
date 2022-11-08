@@ -53,10 +53,3 @@ void ABaseLevel::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	}
 }
 
-void ABaseLevel::DisableTrigger()
-{
-	if (Trigger) {
-	Trigger->DestroyComponent();
-	}
-}
-

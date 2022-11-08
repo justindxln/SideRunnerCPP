@@ -49,7 +49,4 @@ public:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	// Disable box after it has been triggered so it is only used once
-	void DisableTrigger();
 };

@@ -38,6 +38,7 @@ void ALevelGenerator::SpawnLevel()
 
 	ABaseLevel* NewLevel = nullptr;
 
+	// Select the default Level Database, unless the game is in test mode, then select the Test Mode Level Database
 	TArray<TSubclassOf<ABaseLevel>> Database = LevelDatabase;
 	if (ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) {
 		if (GameMode->IsTestMode) Database = TestModeDatabase;
