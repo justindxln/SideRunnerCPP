@@ -107,10 +107,10 @@ void ARunnerCharacter::RecoverJumpCount()
 void ARunnerCharacter::MoveCamera(float DeltaTime)
 {
 	// Set shift speed based on how far the camera is from target destination
-	float YDistanceFromTarget = IsPlayerFacingRight ? MaxCameraYOffset - CameraYOffset : CameraYOffset;
+	float YDistanceFromTarget = IsPlayerFacingRight ? MaxCameraYOffset - CameraYOffset : CameraYOffset - MinCameraYOffset;
 	float CameraTruckRate = YDistanceFromTarget * CameraTruckRateFactor;
 
-	// Shift camera to the left/right depend on player direction, then clamp within set limits
+	// Shift camera to the left/right depending on player direction, then clamp within set limits
 	CameraYOffset = CameraYOffset + (DeltaTime * (IsPlayerFacingRight ? CameraTruckRate : -CameraTruckRate));
 	CameraYOffset = FMath::Clamp(CameraYOffset, 0.f, MaxCameraYOffset);
 
@@ -153,11 +153,7 @@ void ARunnerCharacter::SetupMovementProperties(float RunSpeed, bool DoubleJump, 
 	JumpMaxCountOriginal = DoubleJump ? 2 : 1;
 	JumpMaxCount = JumpMaxCountOriginal;
 
-	DoubleJumpCoolDownMax = DoubleJumpCD;
-	DoubleJumpCoolDown = DoubleJumpCoolDownMax;
-
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("SETTING RUN SPEED TO %f"), RunSpeed));
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("JUMP COUNT = %d"), JumpMaxCount));
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("DB JUMP CD = %f"), DoubleJumpCoolDown));
+	this->DoubleJumpCoolDownMax = DoubleJumpCD;
+	this->DoubleJumpCoolDown = DoubleJumpCoolDownMax;
 }
 

@@ -31,7 +31,6 @@ public:
 
 protected:
 
-	APawn* Player;
 	TArray<ABaseLevel*> LevelList;
 
 	UPROPERTY(EditAnywhere)
@@ -40,15 +39,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABaseLevel>> TestModeDatabase;
 
-	// Maximum number of levels in the scene before oldest ones get destroyed
-	UPROPERTY(EditAnywhere)
-	int MaxLevelAmount = 10;
 
-public:
-
+	FVector DefaultSpawnLocation = FVector(0.f, 1000.f, 0.f);
+	FRotator DefaultSpawnRotation = FRotator(0, 90, 0);
 	int RandomLevelIndex;
-
-	FVector SpawnLocation = FVector();
-	FRotator SpawnRotation = FRotator();
-	FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
 };

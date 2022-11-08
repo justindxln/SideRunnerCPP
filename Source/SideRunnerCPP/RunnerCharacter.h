@@ -42,6 +42,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Camera Control")
 	float MaxCameraYOffset = 200.f;
 	UPROPERTY(EditAnywhere, Category = "Camera Control")
+	float MinCameraYOffset = 0.f;
+	UPROPERTY(EditAnywhere, Category = "Camera Control")
 	float CameraXOffset = -850.f;
 	UPROPERTY(EditAnywhere, Category = "Camera Control")
 	float InitialCameraZOffset = 300.f;
@@ -65,6 +67,7 @@ protected:
 	void MoveCamera(float DeltaTime);
 
 public:
+	// Get Double Jump Cooldown Progress for the HUD
 	UFUNCTION(BlueprintCallable)
 	float GetDoubleJumpCoolDownPercentage();
 
@@ -76,5 +79,6 @@ public:
 
 	void ToggleMovement(bool AllowMovement = true);
 
+	// Called by Game Mode to apply user settings
 	void SetupMovementProperties(float RunSpeed, bool DoubleJump, float DoubleJumpCD);
 };

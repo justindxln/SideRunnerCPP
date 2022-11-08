@@ -26,8 +26,9 @@ void ALevelGenerator::BeginPlay()
 void ALevelGenerator::SpawnLevel()
 {
 	// Set default spawn location for first level
-	SpawnLocation = FVector(0.f, 1000.f, 0.f);
-	SpawnRotation = FRotator(0, 90, 0);
+	FVector SpawnLocation = DefaultSpawnLocation;
+	FRotator SpawnRotation = DefaultSpawnRotation;
+	FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
 
 	// If not first level, get spawn location from the last spawned level
 	if (LevelList.Num() > 0) {

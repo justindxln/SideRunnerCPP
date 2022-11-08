@@ -22,6 +22,14 @@ void APlayerStatusManager::BeginPlay()
 	HPCurrent = HPMax;
 }
 
+void APlayerStatusManager::SetClassReferences(ASideRunnerCPPGameMode* CurrentGameMode, UUserWidget* CurrentHUDWidget)
+{
+	GameMode = CurrentGameMode;
+	HUDWidget = CurrentHUDWidget;
+
+	DoSetHUDReference();
+}
+
 // Called every frame
 void APlayerStatusManager::Tick(float DeltaTime)
 {
@@ -30,10 +38,6 @@ void APlayerStatusManager::Tick(float DeltaTime)
 	if (DamagePerSecondCurrent > 0) {
 		ApplyInstantDamage(DamagePerSecondCurrent * DeltaTime);
 	}
-
-	//if (ShieldDecayRate > 0 && ShieldCurrent > 0) {
-	//	ShieldCurrent = FMath::Clamp(ShieldCurrent - ShieldDecayRate * DeltaTime, 0.f, ShieldMax);
-	//}
 
 	if (SpeedDuration > 0) {
 		SpeedDuration = FMath::Clamp(SpeedDuration - DeltaTime, 0.f, SpeedDurationMax);
@@ -50,14 +54,6 @@ void APlayerStatusManager::Tick(float DeltaTime)
 			ToggleHealing(false);
 		}
 	}
-}
-
-void APlayerStatusManager::SetClassReferences(ASideRunnerCPPGameMode* CurrentGameMode, UUserWidget* CurrentHUDWidget)
-{
-	GameMode = CurrentGameMode;
-	HUDWidget = CurrentHUDWidget;
-
-	DoSetHUDReference();
 }
 
 void APlayerStatusManager::ReceivePowerUp(EPowerUpType PowerUpType, float PowerUpValue)
@@ -128,6 +124,7 @@ void APlayerStatusManager::ApplyScoreBoost()
 void APlayerStatusManager::ApplyInstantHealing(float HealingAmount)
 {
 	HPCurrent = FMath::Clamp(HPCurrent += HealingAmount, 0.f, HPMax);
+
 	DoHUDAddHealth();
 }
 
@@ -148,13 +145,22 @@ void APlayerStatusManager::EndDamage(float DamageValue, EDamageType DamageType)
 	}
 }
 
+void APlayerStatusManager::AddDamageOverTime(float DamagePerSecond)
+{
+	DamagePerSecondCurrent += DamagePerSecond;
+}
+
+void APlayerStatusManager::SubtractDamageOverTime(float DamagePerSecond)
+{
+	DamagePerSecondCurrent -= DamagePerSecond;
+}
+
 void APlayerStatusManager::ApplyInstantDamage(float DamageAmount)
 {
 	if (HPCurrent <= 0.f) return;
 
-	// Shield can block damage before it breaks. Extra damage does not spill over to HP
+	// Shield can 1 hit before it breaks
 	if (ShieldCurrent > 0) {
-		//ShieldCurrent = FMath::Clamp(ShieldCurrent - DamageAmount, 0.f, ShieldMax);
 		ToggleShield(false);
 		return;
 	}
@@ -171,20 +177,11 @@ void APlayerStatusManager::ApplyInstantDamage(float DamageAmount)
 
 	// Player dies if health below zero
 	if (HPCurrent <= 0) {
+		// Call function on Runner Character to stop movement and hide player mesh
 		Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))->TriggerDeath();
 
 		TriggerDeath();
 	}
-}
-
-void APlayerStatusManager::AddDamageOverTime(float DamagePerSecond)
-{
-	DamagePerSecondCurrent += DamagePerSecond;
-}
-
-void APlayerStatusManager::SubtractDamageOverTime(float DamagePerSecond)
-{
-	DamagePerSecondCurrent -= DamagePerSecond;
 }
 
 void APlayerStatusManager::TriggerDeath()

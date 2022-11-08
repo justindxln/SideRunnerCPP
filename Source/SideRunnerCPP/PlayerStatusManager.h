@@ -82,7 +82,7 @@ protected:
 	// Called when HP is 0 to restart level
 	void TriggerDeath();
 
-	// Functions to implement in Blueprint class
+	// Functions to implement in Blueprint
 	UFUNCTION(BlueprintImplementableEvent)
 	void DoSetHUDReference();
 	UFUNCTION(BlueprintImplementableEvent)

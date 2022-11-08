@@ -39,7 +39,6 @@ void ASideRunnerCPPGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidget
 	{
 		CurrentMenuWidget->RemoveFromViewport();
 		CurrentMenuWidget = nullptr;
-		//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("CLEARING OUT OLD WIDGET"));
 	}
 
 	// Create new menu widget and add to Viewport
@@ -49,7 +48,6 @@ void ASideRunnerCPPGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidget
 		if (CurrentMenuWidget != nullptr)
 		{
 			CurrentMenuWidget->AddToViewport();
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("ADDED NEW WIDGET"));
 		}
 	}
 }
@@ -111,19 +109,12 @@ void ASideRunnerCPPGameMode::StartNewGame()
 	PlayerStatusManager = GetWorld()->SpawnActor<APlayerStatusManager>(PlayerStatusManagerClass, FActorSpawnParameters());
 	PlayerStatusManager->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
 
+	// Set up Level Generator
 	if (LevelGenerator != nullptr) {
 		Destroy(LevelGenerator);
 	}
 	LevelGenerator = GetWorld()->SpawnActor<ALevelGenerator>(LevelGeneratorClass, FActorSpawnParameters());
 	LevelGenerator->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
-
-	/*
-	UChildActorComponent* PlayerStatusManagerComp = NewObject<UChildActorComponent>(this);
-	PlayerStatusManagerComp->RegisterComponent();
-	PlayerStatusManagerComp->SetChildActorClass(APlayerStatusManager::StaticClass());
-	PlayerStatusManagerComp->CreateChildActor();
-	PlayerStatusManager = Cast<APlayerStatusManager>(PlayerStatusManagerComp->GetChildActor());
-	*/
 
 	// Set input mode in player controller
 	if (!PlayerController) {
@@ -153,11 +144,6 @@ float ASideRunnerCPPGameMode::GetWallDistanceLerpRatio(bool ClampUpper/*= true*/
 	return (WallDistance - DistanceMin) / (DistanceMax - DistanceMin);
 }
 
-FText ASideRunnerCPPGameMode::GetScoreBoostText()
-{
-	return FText::FromString(FString::Printf(TEXT("x%i"), CurrentScoreBoost));
-}
-
 void ASideRunnerCPPGameMode::SaveGame()
 {
 	if (USideRunnerSaveGame* SaveGameInstance = Cast<USideRunnerSaveGame>(UGameplayStatics::CreateSaveGameObject(USideRunnerSaveGame::StaticClass())))
@@ -166,14 +152,12 @@ void ASideRunnerCPPGameMode::SaveGame()
 		SaveGameInstance->PlayerSpeed = CharacterRunSpeed;
 		SaveGameInstance->WallSpeed = WallMoveSpeed;
 		SaveGameInstance->PlayerDoubleJump = CharacterDoubleJumpAllowed;
-		SaveGameInstance->HighScores = this->HighScoreArray;
+		SaveGameInstance->HighScores = HighScoreArray;
 		SaveGameInstance->PlayerDoubleJumpCoolDown = CharacterDoubleJumpCoolDown;
 		SaveGameInstance->PlayerNames = PlayerNameArray;
 
 		// Start ASync Save
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, FString(TEXT("DEFAULT")), 0);
-
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString((TEXT("SAVING DATA"))));
 	}
 }
 
@@ -185,12 +169,15 @@ void ASideRunnerCPPGameMode::LoadGame()
 		CharacterRunSpeed = SaveGameInstance->PlayerSpeed;
 		WallMoveSpeed = SaveGameInstance->WallSpeed;
 		CharacterDoubleJumpAllowed = SaveGameInstance->PlayerDoubleJump;
-		this->HighScoreArray = SaveGameInstance->HighScores;
+		HighScoreArray = SaveGameInstance->HighScores;
 		CharacterDoubleJumpCoolDown = SaveGameInstance->PlayerDoubleJumpCoolDown;
 		PlayerNameArray = SaveGameInstance->PlayerNames;
-
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString((TEXT("LOADING DATA"))));
 	}
+}
+
+FText ASideRunnerCPPGameMode::GetScoreBoostText()
+{
+	return FText::FromString(FString::Printf(TEXT("x%i"), CurrentScoreBoost));
 }
 
 void ASideRunnerCPPGameMode::TriggerScoreBoost()
