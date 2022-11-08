@@ -2,6 +2,7 @@
 This is an Unreal Engine 4 learning project for myself to dive into the Unreal Engine 4 C++ API and the Unreal Motion Graphics system
 I started with a simple endless runner game tutorial and then extended the features on my own from there (acknowledgements below)
 
+Implementation Details: https://justindxln.github.io/siderunner.html
 
 **CURRENT FEATURE EXTENSIONS:**
 
