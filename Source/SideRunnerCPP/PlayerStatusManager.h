@@ -57,77 +57,77 @@ protected:
 	float DamagePerSecondCurrent;
 
 	// Turn on/off Movement Speed buff
-	void ToggleSpeedBuff(bool Active);
+	void ToggleSpeedBuff(const bool bActive);
 
 	// Turn on/off Shield status
-	void ToggleShield(bool Active);
+	void ToggleShield(const bool bActive);
 
 	// Turn on/off Healing status effect
-	void ToggleHealing(bool Active);
+	void ToggleHealing(const bool bActive);
 
-	void ApplyScoreBoost();
+	void ApplyScoreBoost() const;
 
 	// Apply healing instantly
-	void ApplyInstantHealing(float HealingAmount);
+	void ApplyInstantHealing(const float HealingAmount);
 
 	// Apply damage instantly
-	void ApplyInstantDamage(float DamageAmount);
+	void ApplyInstantDamage(const float DamageAmount);
 
 	// Add damage over time
-	void AddDamageOverTime(float DamagePerSecond);
+	void AddDamageOverTime(const float DamagePerSecond);
 
 	// Subtract damage over time
-	void SubtractDamageOverTime(float DamagePerSecond);
+	void SubtractDamageOverTime(const float DamagePerSecond);
 
 	// Called when HP is 0 to restart level
-	void TriggerDeath();
+	void TriggerDeath() const;
 
 	// Functions to implement in Blueprint
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoSetHUDReference();
+	void DoSetHUDReference() const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDAddHealth();
+	void DoHUDAddHealth() const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDTakeDamage();
+	void DoHUDTakeDamage() const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleShield(bool Active);
+	void DoHUDToggleShield(bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleSpeed(bool Active);
+	void DoHUDToggleSpeed(bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleHealing(bool Active);
+	void DoHUDToggleHealing(bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDApplyScoreBoost();
+	void DoHUDApplyScoreBoost() const;
 
 public:
 	// Called by GameMode after construction to set class references
-	void SetClassReferences(ASideRunnerCPPGameMode* CurrentGameMode, UUserWidget* CurrentHUDWidget);
+	void SetClassReferences(ASideRunnerCPPGameMode* const CurrentGameMode, UUserWidget* const CurrentHUDWidget);
 
 	// Call when player collides with a powerup to trigger the effect
-	void ReceivePowerUp(EPowerUpType PowerUpType, float PowerUpValue);
+	void ReceivePowerUp(const EPowerUpType PowerUpType, const float PowerUpValue);
 
 	// Process Damage value and type and decide how to apply it to player
-	void ReceiveDamage(float DamageValue, EDamageType DamageType);
+	void ReceiveDamage(const float DamageValue, const EDamageType DamageType);
 
 	// Call to stop applying damage over time
-	void EndDamage(float DamageValue, EDamageType DamageType);
+	void EndDamage(const float DamageValue, const EDamageType DamageType);
 
 	// Get Heal Status duration for the HUD
 	UFUNCTION(BlueprintCallable)
-	float GetHealPercentage();
+	float GetHealPercentage() const;
 
 	// Get Speed duration for the HUD
 	UFUNCTION(BlueprintCallable)
-	float GetSpeedPercentage();
+	float GetSpeedPercentage() const;
 
 	// Get Shield Percentage for the HUD
 	UFUNCTION(BlueprintCallable)
-	float GetShieldPercentage();
+	float GetShieldPercentage() const;
 
 	// Get HP Percentage for the HUD
 	UFUNCTION(BlueprintCallable)
-	float GetHPPercentage();
+	float GetHPPercentage() const;
 
 	// Get HP number text for the HUD
 	UFUNCTION(BlueprintCallable)
-	FText GetHPText();
+	FText GetHPText() const;
 };

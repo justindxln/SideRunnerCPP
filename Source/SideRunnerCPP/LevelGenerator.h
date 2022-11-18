@@ -44,6 +44,4 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	FRotator DefaultSpawnRotation = FRotator(0, 90, 0);
-
-	int RandomLevelIndex;
 };

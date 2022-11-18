@@ -25,14 +25,14 @@ public:
 
 public:
 	// Allows Game Mode to adjust Move Speed
-	void SetMoveSpeed(float NewMoveSpeed);
+	void SetMoveSpeed(const float NewMoveSpeed);
 
 	// Called when level begins so the wall starts moving
-	void SetCanMove(bool bCanMove = true);
+	void SetCanMove(const bool bInCanMove = true);
 
-	void BoostMoveSpeed(float ExtraMoveSpeed);
+	void BoostMoveSpeed(const float ExtraMoveSpeed);
 
 private:
 	float MoveSpeed = 350.0f;
-	bool CanMove = false;
+	bool bCanMove = false;
 };

@@ -32,7 +32,7 @@ void ASideRunnerCPPGameMode::Tick(float DeltaTime)
 	}
 }
 
-void ASideRunnerCPPGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass)
+void ASideRunnerCPPGameMode::ChangeMenuWidget(const TSubclassOf<UUserWidget> NewWidgetClass)
 {
 	// Clear current menu widget
 	if (CurrentMenuWidget != nullptr)
@@ -52,7 +52,7 @@ void ASideRunnerCPPGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidget
 	}
 }
 
-void ASideRunnerCPPGameMode::ChangeHUDWidget(TSubclassOf<UUserWidget> NewHUDClass)
+void ASideRunnerCPPGameMode::ChangeHUDWidget(const TSubclassOf<UUserWidget> NewHUDClass)
 {
 	// Clear current HUD
 	if (CurrentHUDWidget != nullptr)
@@ -79,7 +79,7 @@ void ASideRunnerCPPGameMode::BeginPlay()
 	GameState = EGameState::PreGame;
 
 	// Set up kill wall
-	FActorSpawnParameters WallInfo = FActorSpawnParameters();
+	const FActorSpawnParameters WallInfo = FActorSpawnParameters();
 	KillWall = GetWorld()->SpawnActor<AKillWall>(KillWallClass, WallLocation, WallRotation, WallInfo);
 	KillWall->SetMoveSpeed(WallMoveSpeed);
 
@@ -99,7 +99,7 @@ void ASideRunnerCPPGameMode::StartNewGame()
 		PlayerCharacter = Cast<ARunnerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
 	}
 	PlayerCharacter->ToggleMovement();
-	PlayerCharacter->SetupMovementProperties(CharacterRunSpeed, CharacterDoubleJumpAllowed, CharacterDoubleJumpCoolDown);
+	PlayerCharacter->SetupMovementProperties(CharacterRunSpeed, bCharacterDoubleJumpAllowed, CharacterDoubleJumpCoolDown);
 	CurrentScore = 0.f;
 
 	// Set up Player Status Manager
@@ -136,22 +136,21 @@ void ASideRunnerCPPGameMode::StartNewGame()
 }
 
 // Get Alpha/Ratio value for Lerping in HUD and Scoring functions
-float ASideRunnerCPPGameMode::GetWallDistanceLerpRatio(bool ClampUpper/*= true*/)
+float ASideRunnerCPPGameMode::GetWallDistanceLerpRatio(const bool bClampUpper/*= true*/) const
 {
-	float WallDistance = GetPlayerWallDistance();
-	WallDistance = FMath::Clamp(GetPlayerWallDistance(), DistanceMin, ClampUpper ? DistanceMax : WallDistance);
+	const float WallDistance = FMath::Clamp(GetPlayerWallDistance(), DistanceMin, bClampUpper ? DistanceMax : GetPlayerWallDistance());
 
 	return (WallDistance - DistanceMin) / (DistanceMax - DistanceMin);
 }
 
-void ASideRunnerCPPGameMode::SaveGame()
+void ASideRunnerCPPGameMode::SaveGame() const
 {
-	if (USideRunnerSaveGame* SaveGameInstance = Cast<USideRunnerSaveGame>(UGameplayStatics::CreateSaveGameObject(USideRunnerSaveGame::StaticClass())))
+	if (USideRunnerSaveGame* const SaveGameInstance = Cast<USideRunnerSaveGame>(UGameplayStatics::CreateSaveGameObject(USideRunnerSaveGame::StaticClass())))
 	{
 		// Set current data on savegame object
 		SaveGameInstance->PlayerSpeed = CharacterRunSpeed;
 		SaveGameInstance->WallSpeed = WallMoveSpeed;
-		SaveGameInstance->PlayerDoubleJump = CharacterDoubleJumpAllowed;
+		SaveGameInstance->bPlayerDoubleJump = bCharacterDoubleJumpAllowed;
 		SaveGameInstance->HighScores = HighScoreArray;
 		SaveGameInstance->PlayerDoubleJumpCoolDown = CharacterDoubleJumpCoolDown;
 		SaveGameInstance->PlayerNames = PlayerNameArray;
@@ -168,14 +167,14 @@ void ASideRunnerCPPGameMode::LoadGame()
 		// Load save data into settings
 		CharacterRunSpeed = SaveGameInstance->PlayerSpeed;
 		WallMoveSpeed = SaveGameInstance->WallSpeed;
-		CharacterDoubleJumpAllowed = SaveGameInstance->PlayerDoubleJump;
+		bCharacterDoubleJumpAllowed = SaveGameInstance->bPlayerDoubleJump;
 		HighScoreArray = SaveGameInstance->HighScores;
 		CharacterDoubleJumpCoolDown = SaveGameInstance->PlayerDoubleJumpCoolDown;
 		PlayerNameArray = SaveGameInstance->PlayerNames;
 	}
 }
 
-FText ASideRunnerCPPGameMode::GetScoreBoostText()
+FText ASideRunnerCPPGameMode::GetScoreBoostText() const
 {
 	return FText::FromString(FString::Printf(TEXT("x%i"), CurrentScoreBoost));
 }
@@ -194,10 +193,10 @@ void ASideRunnerCPPGameMode::TriggerDeath()
 
 	// Stop the wall from moving and save new high score
 	KillWall->SetCanMove(false);
-	int32 CurrentScoreInt = FMath::RoundToInt(CurrentScore);
+	const int32 CurrentScoreInt = FMath::RoundToInt(CurrentScore);
 
 	// Insert new score among current high score array if it's high enough, then trim the array
-	for (int32 i = 0; i < HighScoreArray.Num(); i++) {
+	for (int8 i = 0; i < HighScoreArray.Num(); i++) {
 		if (CurrentScoreInt > HighScoreArray[i]) {
 			HighScoreArray.Insert(FMath::RoundToInt(CurrentScoreInt), i);
 			PlayerNameArray.Insert(PlayerNameCurrent, i);
@@ -228,21 +227,21 @@ void ASideRunnerCPPGameMode::RestartGame()
 	UGameplayStatics::OpenLevel(this, FName(GetWorld()->GetName()));
 }
 
-float ASideRunnerCPPGameMode::GetPlayerWallDistance()
+float ASideRunnerCPPGameMode::GetPlayerWallDistance() const
 {
 	return FVector::Dist(PlayerCharacter->GetActorLocation(), KillWall->GetActorLocation());
 }
 
-float ASideRunnerCPPGameMode::GetScoreMultiplier()
+float ASideRunnerCPPGameMode::GetScoreMultiplier() const
 {
 	// Get position on the multiplier scale based on distance
 	// The closer the player to the wall, the higher the multiplier
-	float Multiplier = FMath::Lerp(ScoreMultiplierMax, ScoreMultiplierMin, GetWallDistanceLerpRatio());
+	float OutMultiplier = FMath::Lerp(ScoreMultiplierMax, ScoreMultiplierMin, GetWallDistanceLerpRatio());
 
 	// Round the multiplier to the nearest 0.5
-	Multiplier = FMath::RoundToInt (Multiplier * 2) / 2.f;
+	OutMultiplier = FMath::RoundToInt (OutMultiplier * 2) / 2.f;
 
-	return Multiplier;
+	return OutMultiplier;
 }
 
 void ASideRunnerCPPGameMode::SetHighScoreText()
@@ -270,9 +269,9 @@ void ASideRunnerCPPGameMode::SetHighScoreText()
 	PlayerNamesText = FText::FromString(NamesString);
 }
 
-void ASideRunnerCPPGameMode::SetPlayerName(FText PlayerName)
+void ASideRunnerCPPGameMode::SetPlayerName(const FText PlayerName)
 {
 	PlayerNameCurrent = PlayerName;
 
-	if (PlayerName.ToString() == TEXT("password")) IsTestMode = true;
+	if (PlayerName.ToString() == TEXT("password")) bIsTestMode = true;
 }

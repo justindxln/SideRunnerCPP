@@ -12,9 +12,6 @@ class SIDERUNNERCPP_API ARunnerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere)
-	class UCameraComponent* SideViewCamera;
-
 public:
 	// Sets default values for this character's properties
 	ARunnerCharacter();
@@ -35,6 +32,7 @@ public:
 
 protected:
 	// Camera control variables
+	class UCameraComponent* SideViewCamera;
 	UPROPERTY(EditAnywhere, Category = "Camera Control")
 	float MinCameraTruckRate = 60.f;
 	UPROPERTY(EditAnywhere, Category = "Camera Control")
@@ -49,9 +47,9 @@ protected:
 	float InitialCameraZOffset = 300.f;
 	float CameraYOffset;
 	float CameraZLocation;
-	bool IsPlayerFacingRight;
+	bool bIsPlayerFacingRight;
 
-	bool CanMove;
+	bool bCanMove;
 
 	// Used to keep track of double jump availability
 	int32 JumpMaxCountOriginal;
@@ -59,7 +57,7 @@ protected:
 	float DoubleJumpCoolDownMax;
 
 	// Move left/right
-	void MoveRight(float value);
+	void MoveRight(const float value);
 
 	void RecoverJumpCount();
 
@@ -69,16 +67,16 @@ protected:
 public:
 	// Get Double Jump Cooldown Progress for the HUD
 	UFUNCTION(BlueprintCallable)
-	float GetDoubleJumpCoolDownPercentage();
+	float GetDoubleJumpCoolDownPercentage() const;
 
 	// Called when HP is 0 to stop movement
 	void TriggerDeath();
 
 	// Called by Player Status Manager to toggle Speed Buff
-	void ToggleSpeedBuff(bool Active, float BuffAmount);
+	void ToggleSpeedBuff(const bool bActive, const float BuffAmount);
 
-	void ToggleMovement(bool AllowMovement = true);
+	void ToggleMovement(const bool bAllowMovement = true);
 
 	// Called by Game Mode to apply user settings
-	void SetupMovementProperties(float RunSpeed, bool DoubleJump, float DoubleJumpCD);
+	void SetupMovementProperties(const float RunSpeed, const bool bDoubleJump, const float DoubleJumpCD);
 };

@@ -34,11 +34,11 @@ protected:
 	UBoxComponent* SpawnLocation;
 
 	// Used to make sure each level only triggers level spawn once
-	bool SpawnTriggerUsed;
+	bool bSpawnTriggerUsed;
 	
 public:
-	UBoxComponent* GetTrigger();
-	UBoxComponent* GetSpawnLocation();
+	UBoxComponent* GetTrigger() const;
+	UBoxComponent* GetSpawnLocation() const;
 
 	DECLARE_DYNAMIC_DELEGATE(FBaseLevelOverlapSignature);
 

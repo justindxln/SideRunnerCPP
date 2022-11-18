@@ -27,39 +27,37 @@ void ALevelGenerator::SpawnLevel()
 {
 	// Set default spawn location for first level
 	FVector SpawnLocation = DefaultSpawnLocation;
-	FRotator SpawnRotation = DefaultSpawnRotation;
-	FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
+	const FRotator SpawnRotation = DefaultSpawnRotation;
+	const FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
 
 	// If not first level, get spawn location from the last spawned level
-	if (LevelList.Num() > 0) {
-		ABaseLevel* LastLevel = LevelList.Last();
+	if (LevelList.Num() > 0)
+	{
+		const ABaseLevel* const LastLevel = LevelList.Last();
 		SpawnLocation = LastLevel->GetSpawnLocation()->GetComponentTransform().GetTranslation();
 	}
 
-	ABaseLevel* NewLevel = nullptr;
-
 	// Select the default Level Database, unless the game is in test mode, then select the Test Mode Level Database
 	TArray<TSubclassOf<ABaseLevel>> Database = LevelDatabase;
-	if (ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) {
-		if (GameMode->IsTestMode) Database = TestModeDatabase;
+	if (ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) 
+	{
+		if (GameMode->bIsTestMode) Database = TestModeDatabase;
 	}
 
-	RandomLevelIndex = FMath::RandRange(0, Database.Num() - 1);
+	const int RandomLevelIndex = FMath::RandRange(0, Database.Num() - 1);
 
+	if (Database[RandomLevelIndex] == nullptr) return;
+	
 	// Create a level from a random index in the library
-	if (Database[RandomLevelIndex] != nullptr) {
-		NewLevel = GetWorld()->SpawnActor<ABaseLevel>(Database[RandomLevelIndex], 
-			SpawnLocation, SpawnRotation, SpawnParameters);
-	}
-
+	ABaseLevel* const NewLevel = GetWorld()->SpawnActor<ABaseLevel>(Database[RandomLevelIndex],
+		SpawnLocation, SpawnRotation, SpawnParameters);
+	
+	if (!NewLevel || !NewLevel->GetTrigger()) return;
+	
 	// Set the collision trigger events
-	if (NewLevel) {
-		if (NewLevel->GetTrigger()) {
-			NewLevel->GetTrigger()->OnComponentBeginOverlap.AddDynamic(NewLevel, &ABaseLevel::OnOverlapBegin);
-			NewLevel->OnOverlapPlayer.BindDynamic(this, &ALevelGenerator::SpawnLevel);
-			NewLevel->OnOverlapWall.BindDynamic(this, &ALevelGenerator::DestroyOldestLevel);
-		}
-	}
+	NewLevel->GetTrigger()->OnComponentBeginOverlap.AddDynamic(NewLevel, &ABaseLevel::OnOverlapBegin);
+	NewLevel->OnOverlapPlayer.BindDynamic(this, &ALevelGenerator::SpawnLevel);
+	NewLevel->OnOverlapWall.BindDynamic(this, &ALevelGenerator::DestroyOldestLevel);
 
 	LevelList.Add(NewLevel);
 }

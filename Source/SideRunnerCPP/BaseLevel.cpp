@@ -19,8 +19,7 @@ void ABaseLevel::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (Trigger != nullptr)
-		Trigger->bHiddenInGame = true;
+	if (Trigger != nullptr) Trigger->bHiddenInGame = true;
 }
 
 // Called every frame
@@ -30,25 +29,27 @@ void ABaseLevel::Tick(float DeltaTime)
 
 }
 
-UBoxComponent * ABaseLevel::GetTrigger()
+UBoxComponent* ABaseLevel::GetTrigger() const
 {
 	return Trigger;
 }
 
-UBoxComponent* ABaseLevel::GetSpawnLocation()
+UBoxComponent* ABaseLevel::GetSpawnLocation() const
 {
 	return SpawnLocation;
 }
 
 void ABaseLevel::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (ARunnerCharacter* Player = Cast<ARunnerCharacter>(OtherActor)) {
-		if (SpawnTriggerUsed) return;
+	if (ARunnerCharacter* Player = Cast<ARunnerCharacter>(OtherActor))
+	{
+		if (bSpawnTriggerUsed) return;
 
 		OnOverlapPlayer.ExecuteIfBound();
-		SpawnTriggerUsed = true;
+		bSpawnTriggerUsed = true;
 	}
-	else if (AKillWall* KillWall = Cast<AKillWall>(OtherActor)) {
+	else if (AKillWall* KillWall = Cast<AKillWall>(OtherActor))
+	{
 		OnOverlapWall.ExecuteIfBound();
 	}
 }

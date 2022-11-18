@@ -31,13 +31,13 @@ void APowerUp::Tick(float DeltaTime)
 
 void APowerUp::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (ARunnerCharacter* PlayerCharacter = Cast<ARunnerCharacter>(OtherActor)) {
-		ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this));
-		if (GameMode) {
-			GameMode->PlayerStatusManager->ReceivePowerUp(PowerUpType, PowerUpValue);
-		}
-
-		Destroy();
-	}
+	ARunnerCharacter* const PlayerCharacter = Cast<ARunnerCharacter>(OtherActor);
+	if (!PlayerCharacter) return;
+	
+	ASideRunnerCPPGameMode* const GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this));
+	if (!GameMode) return;
+		
+	GameMode->PlayerStatusManager->ReceivePowerUp(PowerUpType, PowerUpValue);
+	Destroy();
 }
 

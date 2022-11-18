@@ -19,7 +19,7 @@ public:
 	float PlayerSpeed;
 
 	UPROPERTY(VisibleAnywhere, Category = "PLayerSettings")
-	bool PlayerDoubleJump;
+	bool bPlayerDoubleJump;
 
 	UPROPERTY(VisibleAnywhere, Category = "PLayerSettings")
 	float PlayerDoubleJumpCoolDown;

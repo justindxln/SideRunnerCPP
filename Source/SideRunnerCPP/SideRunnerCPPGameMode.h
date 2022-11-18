@@ -38,23 +38,23 @@ public:
 
 	// Swapping in/out menus
 	UFUNCTION(BlueprintCallable, Category = "Side Runner UI")
-	void ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass);
+	void ChangeMenuWidget(const TSubclassOf<UUserWidget> NewWidgetClass);
 
 	// Swapping in/out menus
 	UFUNCTION(BlueprintCallable, Category = "Side Runner UI")
-	void ChangeHUDWidget(TSubclassOf<UUserWidget> NewHUDClass);
+	void ChangeHUDWidget(const TSubclassOf<UUserWidget> NewHUDClass);
 
 	// HUD functions
 	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
-	float GetWallDistanceLerpRatio(bool ClampUpper = true);
+	float GetWallDistanceLerpRatio(const bool bClampUpper = true) const;
 	UFUNCTION(BlueprintCallable, Category = "Side Runner HUD")
-	FText GetScoreBoostText();
+	FText GetScoreBoostText() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
 	void StartNewGame();
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
-	void SaveGame();
+	void SaveGame() const;
 	void LoadGame();
 
 	// Triggered by powerup that increases score multiplier but also wall speed
@@ -95,7 +95,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Runner Properties")
 	float CharacterRunSpeed = 600.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Runner Properties")
-	bool CharacterDoubleJumpAllowed = false;
+	bool bCharacterDoubleJumpAllowed = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Runner Properties")
 	float CharacterDoubleJumpCoolDown = 4.0f;
 
@@ -138,7 +138,7 @@ protected:
 	ASideRunnerPlayerController* PlayerController;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Side Runner Game")
-	void DoOnTriggerDeath();
+	void DoOnTriggerDeath() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Side Runner Game")
 	void RestartGame();
@@ -148,14 +148,14 @@ protected:
 	void SetHighScoreText();
 
 	UFUNCTION(BlueprintCallable)
-	void SetPlayerName(FText PlayerName);
+	void SetPlayerName(const FText PlayerName);
 
-	float GetPlayerWallDistance();
+	float GetPlayerWallDistance() const;
 
-	float GetScoreMultiplier();
+	float GetScoreMultiplier() const;
 
 public:
-	bool IsTestMode = false;
+	bool bIsTestMode = false;
 };
 
 

@@ -56,10 +56,12 @@ void ARunnerCharacter::Tick(float DeltaTime)
 	MoveCamera(DeltaTime);
 
 	// Recover double jump if applicable and on cooldown
-	if (JumpMaxCountOriginal > 1 && DoubleJumpCoolDown < DoubleJumpCoolDownMax) {
+	if (JumpMaxCountOriginal > 1 && DoubleJumpCoolDown < DoubleJumpCoolDownMax) 
+	{
 		DoubleJumpCoolDown += DeltaTime;
 
-		if (DoubleJumpCoolDown >= DoubleJumpCoolDownMax) {
+		if (DoubleJumpCoolDown >= DoubleJumpCoolDownMax) 
+		{
 			RecoverJumpCount();
 		}
 	}
@@ -76,23 +78,25 @@ void ARunnerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARunnerCharacter::MoveRight);
 }
 
-void ARunnerCharacter::MoveRight(float value)
+void ARunnerCharacter::MoveRight(const float value)
 {
-	if (CanMove) {
+	if (bCanMove) 
+	{
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		AddMovementInput(FVector(0.f, 1.f, 0.f), value);
 	}
 
 	// Move the camera depending on where the player is going
 	// If no movement is detected, maintain camera direction
-	if (value > 0) IsPlayerFacingRight = true;
-	else if (value < 0) IsPlayerFacingRight = false;
+	if (value > 0) bIsPlayerFacingRight = true;
+	else if (value < 0) bIsPlayerFacingRight = false;
 }
 
 void ARunnerCharacter::OnJumped_Implementation()
 {
 	// If it's a double (or more) jump, decrease the max jump count and put it on cooldown
-	if (JumpCurrentCount > 1) {
+	if (JumpCurrentCount > 1) 
+	{
 		JumpMaxCount--;
 		DoubleJumpCoolDown = 0.f;
 	}
@@ -104,14 +108,14 @@ void ARunnerCharacter::RecoverJumpCount()
 	JumpMaxCount++;
 }
 
-void ARunnerCharacter::MoveCamera(float DeltaTime)
+void ARunnerCharacter::MoveCamera(const float DeltaTime)
 {
 	// Set shift speed based on how far the camera is from target destination
-	float YDistanceFromTarget = IsPlayerFacingRight ? MaxCameraYOffset - CameraYOffset : CameraYOffset - MinCameraYOffset;
-	float CameraTruckRate = YDistanceFromTarget * CameraTruckRateFactor;
+	const float YDistanceFromTarget = bIsPlayerFacingRight ? MaxCameraYOffset - CameraYOffset : CameraYOffset - MinCameraYOffset;
+	const float CameraTruckRate = YDistanceFromTarget * CameraTruckRateFactor;
 
 	// Shift camera to the left/right depending on player direction, then clamp within set limits
-	CameraYOffset = CameraYOffset + (DeltaTime * (IsPlayerFacingRight ? CameraTruckRate : -CameraTruckRate));
+	CameraYOffset = CameraYOffset + (DeltaTime * (bIsPlayerFacingRight ? CameraTruckRate : -CameraTruckRate));
 	CameraYOffset = FMath::Clamp(CameraYOffset, 0.f, MaxCameraYOffset);
 
 	// Set camera location by applying offset vector to player location
@@ -127,30 +131,30 @@ void ARunnerCharacter::TriggerDeath()
 	GetMesh()->Deactivate();
 	GetMesh()->SetVisibility(false);
 
-	CanMove = false;
+	bCanMove = false;
 }
 
-void ARunnerCharacter::ToggleSpeedBuff(bool Active, float BuffAmount)
+void ARunnerCharacter::ToggleSpeedBuff(const bool bActive, const float BuffAmount)
 {
-	GetCharacterMovement()->MaxWalkSpeed += Active ? BuffAmount : -BuffAmount;
-	GetCharacterMovement()->MaxFlySpeed += Active ? BuffAmount : -BuffAmount;
+	GetCharacterMovement()->MaxWalkSpeed += bActive ? BuffAmount : -BuffAmount;
+	GetCharacterMovement()->MaxFlySpeed += bActive ? BuffAmount : -BuffAmount;
 }
 
-float ARunnerCharacter::GetDoubleJumpCoolDownPercentage()
+float ARunnerCharacter::GetDoubleJumpCoolDownPercentage() const
 {
 	return FMath::Clamp(DoubleJumpCoolDown / DoubleJumpCoolDownMax, 0.0f, 1.0f);
 }
 
-void ARunnerCharacter::ToggleMovement(bool AllowMovement /*= true*/)
+void ARunnerCharacter::ToggleMovement(const bool bAllowMovement /*= true*/)
 {
-	CanMove = AllowMovement;
+	bCanMove = bAllowMovement;
 }
 
-void ARunnerCharacter::SetupMovementProperties(float RunSpeed, bool DoubleJump, float DoubleJumpCD)
+void ARunnerCharacter::SetupMovementProperties(const float RunSpeed, const bool bDoubleJump, const float DoubleJumpCD)
 {
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 	GetCharacterMovement()->MaxFlySpeed = RunSpeed;
-	JumpMaxCountOriginal = DoubleJump ? 2 : 1;
+	JumpMaxCountOriginal = bDoubleJump ? 2 : 1;
 	JumpMaxCount = JumpMaxCountOriginal;
 
 	this->DoubleJumpCoolDownMax = DoubleJumpCD;

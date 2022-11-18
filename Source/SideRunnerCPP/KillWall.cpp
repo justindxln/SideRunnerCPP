@@ -21,22 +21,23 @@ void AKillWall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (CanMove) {
-	SetActorLocation(GetActorLocation() + FVector(0.f, MoveSpeed *DeltaTime, 0.f), true);
+	if (bCanMove)
+	{
+		SetActorLocation(GetActorLocation() + FVector(0.f, MoveSpeed *DeltaTime, 0.f), true);
 	}
 }
 
-void AKillWall::SetMoveSpeed(float NewMoveSpeed)
+void AKillWall::SetMoveSpeed(const float NewMoveSpeed)
 {
 	MoveSpeed = NewMoveSpeed;
 }
 
-void AKillWall::SetCanMove(bool bCanMove /*= true*/)
+void AKillWall::SetCanMove(const bool bInCanMove /*= true*/)
 {
-	CanMove = bCanMove;
+	bCanMove = bInCanMove;
 }
 
-void AKillWall::BoostMoveSpeed(float ExtraMoveSpeed)
+void AKillWall::BoostMoveSpeed(const float ExtraMoveSpeed)
 {
 	MoveSpeed += ExtraMoveSpeed;
 }
