@@ -60,21 +60,23 @@ void APlayerStatusManager::ReceivePowerUp(const EPowerUpType PowerUpType, const 
 {
 	switch (PowerUpType)
 	{
-	case EPowerUpType::Health:
-		ApplyInstantHealing(PowerUpValue);
-		break;
-	case EPowerUpType::Shield:
-		ToggleShield(true);
-		break;
-	case EPowerUpType::Speed:
-		ToggleSpeedBuff(true);
-		break;
-	case EPowerUpType::Healing:
-		ToggleHealing(true);
-		break;
-	case EPowerUpType::ScoreBoost:
-		ApplyScoreBoost();
-		break;
+		case EPowerUpType::Health:
+			ApplyInstantHealing(PowerUpValue);
+			break;
+		case EPowerUpType::Shield:
+			ToggleShield(true);
+			break;
+		case EPowerUpType::Speed:
+			ToggleSpeedBuff(true);
+			break;
+		case EPowerUpType::Healing:
+			ToggleHealing(true);
+			break;
+		case EPowerUpType::ScoreBoost:
+			ApplyScoreBoost();
+			break;
+		default:
+			break;
 	}
 }
 

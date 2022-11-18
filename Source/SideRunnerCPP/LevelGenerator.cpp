@@ -39,7 +39,7 @@ void ALevelGenerator::SpawnLevel()
 
 	// Select the default Level Database, unless the game is in test mode, then select the Test Mode Level Database
 	TArray<TSubclassOf<ABaseLevel>> Database = LevelDatabase;
-	if (ASideRunnerCPPGameMode* GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) 
+	if (ASideRunnerCPPGameMode* const GameMode = Cast<ASideRunnerCPPGameMode>(UGameplayStatics::GetGameMode(this))) 
 	{
 		if (GameMode->bIsTestMode) Database = TestModeDatabase;
 	}
@@ -64,6 +64,8 @@ void ALevelGenerator::SpawnLevel()
 
 void ALevelGenerator::DestroyOldestLevel()
 {
+	if (LevelList.Num() <= 0 || LevelList[0] == nullptr) return;
+
 	GetWorld()->DestroyActor(LevelList[0]);
 	LevelList.RemoveAt(0);
 }

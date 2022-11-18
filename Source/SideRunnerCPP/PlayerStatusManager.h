@@ -90,11 +90,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DoHUDTakeDamage() const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleShield(bool bActive) const;
+	void DoHUDToggleShield(const bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleSpeed(bool bActive) const;
+	void DoHUDToggleSpeed(const bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void DoHUDToggleHealing(bool bActive) const;
+	void DoHUDToggleHealing(const bool bActive) const;
 	UFUNCTION(BlueprintImplementableEvent)
 	void DoHUDApplyScoreBoost() const;
 

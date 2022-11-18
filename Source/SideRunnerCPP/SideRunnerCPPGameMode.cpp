@@ -27,8 +27,8 @@ void ASideRunnerCPPGameMode::Tick(float DeltaTime)
 {
 	// Only increase the score when the game is active
 	if (GameState == EGameState::Active) {
-	CurrentScoreMultiplier = GetScoreMultiplier();
-	CurrentScore += (CurrentScoreMultiplier * 10.f) * DeltaTime;
+		CurrentScoreMultiplier = GetScoreMultiplier();
+		CurrentScore += (CurrentScoreMultiplier * 10.f) * DeltaTime;
 	}
 }
 
@@ -162,7 +162,7 @@ void ASideRunnerCPPGameMode::SaveGame() const
 
 void ASideRunnerCPPGameMode::LoadGame()
 {
-	if (USideRunnerSaveGame* SaveGameInstance = Cast<USideRunnerSaveGame>(UGameplayStatics::LoadGameFromSlot(FString(TEXT("DEFAULT")), 0)))
+	if (USideRunnerSaveGame* const SaveGameInstance = Cast<USideRunnerSaveGame>(UGameplayStatics::LoadGameFromSlot(FString(TEXT("DEFAULT")), 0)))
 	{
 		// Load save data into settings
 		CharacterRunSpeed = SaveGameInstance->PlayerSpeed;
